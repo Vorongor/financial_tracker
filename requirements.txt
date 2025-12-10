@@ -1,0 +1,13 @@
+django
+django-environ
+django-extensions
+django-debug-toolbar
+django-crispy-forms
+crispy-bootstrap5
+django-widget-tweaks #кастомізувати поля форм у шаблонах
+flake8
+flake8-quotes
+flake8-variables-names
+pep8-naming
+black
+isort # для сортування імпортів
