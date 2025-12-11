@@ -1,0 +1,116 @@
+{% extends "includes/index.html" %}
+{% block home %}
+
+  <section class="py-5">
+    <div class="container">
+      <h1 class="display-4 mb-4">Take Control of Your Finances</h1>
+      <p class="lead mb-5">
+        Smart saving and budgeting can transform your financial future. Explore
+        the facts below to see how small changes add up over time.
+      </p>
+
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">💡 Did you know?</h5>
+              <p class="card-text">
+                Over 50% of adults globally don’t track their expenses
+                regularly. Tracking provides visibility — and visibility leads
+                to better saving habits.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">📉 Budgeting works</h5>
+              <p class="card-text">
+                Households using a formal budget save on average 20–30% more
+                than those who don’t. Budgeting helps you plan for essentials
+                and manage unexpected costs.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">🏦 Emergency fund matters</h5>
+              <p class="card-text">
+                Experts recommend keeping 3–6 months’ worth of expenses in an
+                emergency fund. This creates a safety net for job loss or
+                unexpected expenses.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Statistics Section -->
+  <section class="py-5 bg-light text-black-50">
+    <div class="container">
+      <h2 class="mb-5">Our Impact So Far</h2>
+
+      <div class="row text-center g-4">
+        <div class="col-6 col-md-3">
+          <div class="display-4 fw-bold">1,200+</div>
+          <p>Registered Users</p>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="display-4 fw-bold">34% ↑</div>
+          <p>Average Savings Increase</p>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="display-4 fw-bold">5,000+</div>
+          <p>Budgets Created</p>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="display-4 fw-bold">$2.4M</div>
+          <p>Total Savings Achieved</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tips Section -->
+  <section class="py-5">
+    <div class="container">
+      <h2 class="mb-4">Tips for Smart Saving & Budgeting</h2>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">Track all expenses for at least one month
+          to know where your money goes.
+        </li>
+        <li class="list-group-item">Set realistic monthly budget categories —
+          essentials, savings, fun, emergencies.
+        </li>
+        <li class="list-group-item">Automate savings: transfer a fixed amount
+          to savings account every payday.
+        </li>
+        <li class="list-group-item">Review your budget weekly and adjust as
+          needed.
+        </li>
+        <li class="list-group-item">Avoid impulse purchases: wait 24 hours
+          before buying non-essential items.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Call to Action -->
+  <section class="py-5 text-center">
+    <div class="container">
+      <h2 class="mb-4">Ready to take charge?</h2>
+      <p class="lead mb-4">Create your budget and start saving today. See how
+        far you can go by making smart choices.</p>
+      <a href="{% url 'register' %}" class="btn btn-primary btn-lg">Get
+        Started</a>
+    </div>
+  </section>
+
+{% endblock %}

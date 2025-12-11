@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+  <div class="container py-5">
+
+    <div class="row min-vh-100">
+
+      <!-- LEFT SIDE: USER INFORMATION -->
+      <div class="col-12 col-md-6">
+        <div class="p-4 bg-dark text-white rounded h-100 flex-column justify-content-between">
+          <div class="d-flex align-items-center mb-4">
+            <img src="{% static 'assets/brand/profile-svg-white.svg' %}"
+                 class="me-3"
+                 alt="User avatar"
+                 width="64" height="64">
+            <div class="flex flex-column justify-content-start">
+              <h2 class="mb-0 flex flex-column justify-content-start">
+                {{ user.first_name }} {{ user.last_name }}
+              </h2>
+              <span
+                  class="block text-start text-secondary">@{{ user.username }}</span>
+            </div>
+          </div>
+
+          <ul class="list-group list-group-flush ">
+            <li class="list-group-item bg-dark text-white align-items-lg-start">
+              <strong>Full name:</strong> {{ object }}
+            </li>
+
+            <li class="list-group-item bg-dark text-white">
+              <strong>Email:</strong> {{ object.email }}
+            </li>
+
+            <li class="list-group-item bg-dark text-white">
+              <strong>Job:</strong> {{ object.job|default:"—" }}
+            </li>
+
+            <li class="list-group-item bg-dark text-white">
+              <strong>Salary:</strong> {{ object.salary }} {{ object.default_currency }}
+            </li>
+
+            <li class="list-group-item bg-dark text-white">
+              <strong>Default Currency:</strong> {{ object.default_currency }}
+            </li>
+          </ul>
+
+          <!-- BUTTONS -->
+          <div class="mt-4 d-flex gap-3">
+            <a href="#" class="btn btn-primary">Update</a>
+            <a href="#" class="btn btn-danger">Delete</a>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT SIDE: BUSINESS LOGIC PLACEHOLDER -->
+      <div class="col-12 col-md-6">
+        <div class="w-100 h-100 p-4 bg-secondary text-white rounded"
+             style="min-height: 400px;">
+          <h3 class="mb-3">Business Logic Block</h3>
+          <p class="text-light">
+            This space is reserved for future financial dashboard components,
+            analytics, charts, or other profile-related features.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+{% endblock %}

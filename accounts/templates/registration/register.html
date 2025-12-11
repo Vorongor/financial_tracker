@@ -1,0 +1,103 @@
+{% extends 'includes/index.html' %}
+{% load static %}
+{% block login %}
+  <div class="col-12 col-lg-4 p-4 h-100 mx-auto">
+    <form method="post" action="">
+      {% csrf_token %}
+
+      <img class="mb-4"
+           src="{% static 'assets/brand/bootstrap-logo-white.svg' %}"
+           alt="" width="72" height="57">
+
+      <h2 class="h3 mb-3 fw-normal">Create Account</h2>
+
+      {% if form.errors %}
+        <div class="alert alert-danger">
+          Please correct the errors below.
+        </div>
+      {% endif %}
+      <div class="form-floating text-secondary mb-4">
+        <input type="text"
+               name="username"
+               class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+               id="usernameInput"
+               value="{{ form.username.value|default:'' }}"
+               placeholder="Username"
+               required>
+        <label for="usernameInput">Username</label>
+        {% for error in form.username.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="form-floating text-secondary mb-4">
+        <input type="email"
+               name="email"
+               class="form-control {% if form.email.errors %}is-invalid{% endif %}"
+               id="emailInput"
+               value="{{ form.email.value|default:'' }}"
+               placeholder="name@example.com"
+               required>
+        <label for="emailInput">Email</label>
+        {% for error in form.email.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="form-floating text-secondary mb-4">
+        <input type="text"
+               name="first_name"
+               class="form-control {% if form.first_name.errors %}is-invalid{% endif %}"
+               id="firstNameInput"
+               value="{{ form.first_name.value|default:'' }}"
+               placeholder="First name"
+               required>
+        <label for="firstNameInput">First name</label>
+        {% for error in form.first_name.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="form-floating text-secondary mb-4">
+        <input type="text"
+               name="last_name"
+               class="form-control {% if form.last_name.errors %}is-invalid{% endif %}"
+               id="lastNameInput"
+               value="{{ form.last_name.value|default:'' }}"
+               placeholder="Last name"
+               required>
+        <label for="lastNameInput">Last name</label>
+        {% for error in form.last_name.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="form-floating text-secondary mb-4">
+        <input type="password"
+               name="password1"
+               class="form-control {% if form.password1.errors %}is-invalid{% endif %}"
+               id="passwordInput1"
+               placeholder="Password"
+               required>
+        <label for="passwordInput1">Password</label>
+        {% for error in form.password1.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="form-floating text-secondary mb-4">
+        <input type="password"
+               name="password2"
+               class="form-control {% if form.password2.errors %}is-invalid{% endif %}"
+               id="passwordInput2"
+               placeholder="Repeat password"
+               required>
+        <label for="passwordInput2">Confirm password</label>
+        {% for error in form.password2.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <button class="w-100 btn btn-lg btn-primary" type="submit">
+        Register
+      </button>
+
+      <p class="mt-5 mb-3 text-white">&copy; 2017–2021</p>
+    </form>
+  </div>
+{% endblock %}

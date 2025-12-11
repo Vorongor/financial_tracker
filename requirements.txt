@@ -4,10 +4,10 @@ django-extensions
 django-debug-toolbar
 django-crispy-forms
 crispy-bootstrap5
-django-widget-tweaks #кастомізувати поля форм у шаблонах
+django-widget-tweaks
 flake8
 flake8-quotes
 flake8-variables-names
 pep8-naming
 black
-isort # для сортування імпортів
+isort

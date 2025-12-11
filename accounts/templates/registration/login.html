@@ -1,0 +1,49 @@
+{% extends "includes/index.html" %}
+{% load static %}
+{% block login %}
+  <div class="col-12 col-lg-4 p-4 h-100 mx-auto">
+    <form method="post" action="{% url "login" %}">
+      {% csrf_token %}
+      <img class="mb-4"
+           src="{% static 'assets/brand/bootstrap-logo-white.svg' %}"
+           alt="" width="72" height="57">
+      <h2 class="h3 mb-3 fw-normal">Please sign in</h2>
+
+      {% if form.errors %}
+        <div class="alert alert-danger">
+          Invalid username or password.
+        </div>
+      {% endif %}
+
+      <div class="form-floating text-secondary mb-4">
+        <input
+            type="text"
+            name="username"
+            class="form-control "
+            id="floatingInput"
+            placeholder="Username.."
+            required>
+        <label for="floatingInput ">Username</label>
+      </div>
+      <div class="form-floating text-secondary mb-4">
+        <input
+            type="password"
+            name="password"
+            class="form-control"
+            id="floatingPassword"
+            placeholder="Password"
+            required>
+        <label for="floatingPassword">Password</label>
+      </div>
+
+      <div class="checkbox mb-4">
+        <label>
+          <input type="checkbox" value="remember-me"> Remember me
+        </label>
+      </div>
+      <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in
+      </button>
+      <p class="mt-5 mb-3 text-white">&copy; 2017–2021</p>
+    </form>
+  </div>
+{% endblock %}
