@@ -1,0 +1,190 @@
+{% extends "includes/index.html" %}
+{% block content %}
+
+  {% if event %}
+    <div class="container py-4">
+      <div class="row g-4 d-flex justify-content-center gap-3">
+
+        <!-- LEFT SIDE (7) -->
+        <div class="col-lg-7">
+
+          <!-- Event header -->
+          <div class="card bg-dark text-white shadow-sm mb-4">
+            <div class="card-body">
+              <h2 class="fw-bold mb-2">{{ event.name }}</h2>
+              <p class="text-secondary">{{ event.description }}</p>
+
+              <div class="d-flex flex-wrap gap-2 mt-3">
+                <a class="btn btn-outline-info"
+                   href="{% url "transfer-create" "event" event.id %}?next={{ request.path }}">
+                  Add transaction
+                </a>
+
+                {% if event.type != "Private" %}
+                  <button class="btn btn-outline-success"
+                          data-bs-toggle="modal"
+                          data-bs-target="#inviteMemberModal">
+                    Add member
+                  </button>
+                {% endif %}
+
+                <a class="btn btn-outline-danger ms-auto"
+                   href="{% url "events:event-delete" pk=event.id %}">
+                  Delete event
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Event details -->
+          <div class="card bg-dark text-white shadow-sm mb-4">
+            <div class="card-body">
+              <h5 class="fw-semibold mb-3">Event details</h5>
+
+              {% if event.start_date %}
+                <p><strong>Start:</strong> {{ event.start_date }}</p>
+              {% endif %}
+              {% if event.end_date %}
+                <p><strong>End:</strong> {{ event.end_date }}</p>
+              {% endif %}
+
+              <p><strong>Type:</strong> {{ event.type }}</p>
+              <p><strong>Status:</strong> {{ event.status }}</p>
+              <p><strong>Planned amount:</strong> {{ event.planned_amount }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Budget -->
+          {% if current_budget %}
+            <div class="card bg-dark text-white shadow-sm mb-4">
+              <div class="card-body">
+                <h5 class="fw-semibold mb-3">Budget overview</h5>
+
+                {% if event.type == "Savings" %}
+                  <p>Total income: {{ current_budget.total_income }}</p>
+                {% endif %}
+                {% if current_budget.total_expenses %}
+                  <p>Total expenses: {{ current_budget.total_expenses }}</p>
+                {% endif %}
+
+                <p>
+                  Current / Planned:
+                  {{ current_budget.current_amount }} /
+                  {{ current_budget.planned_amount }}
+                </p>
+              </div>
+            </div>
+          {% endif %}
+
+
+        </div>
+
+        <!-- RIGHT SIDE (3) -->
+        <div class="col-lg-3">
+          <!-- Transactions -->
+          <div class="card bg-dark text-white shadow-sm mb-4">
+            <div class="card-body">
+              <h5 class="fw-semibold mb-3">Transaction history</h5>
+
+              {% if transaction_history %}
+                <ul class="list-group list-group-flush">
+                  {% for transaction in transaction_history %}
+                    <li class="list-group-item bg-dark text-white border-secondary">
+                      {{ transaction.get_short_description }}
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <p class="text-secondary">No transactions yet</p>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Members -->
+          {% if event.accessibility != "Private" %}
+            <div class="card bg-dark text-white shadow-sm mb-4">
+              <div class="card-body">
+                <h5 class="fw-semibold mb-3">Members</h5>
+                {% if members %}
+                  <ul class="list-group list-group-flush">
+                    {% for membership in members %}
+                      <li class="list-group-item bg-dark text-white border-secondary">
+                        <div>
+                          <div
+                              class="fw-semibold">{{ membership.user.username }}
+                          </div>
+                          <small class="text-secondary">
+                            {{ membership.role }} · {{ membership.status }}
+                          </small>
+                        </div>
+                        <div
+                            class="d-flex flex-row justify-content-center gap-2">
+                          {% if user_role == "Admin" %}
+                            {% if membership.status != "Pending" and membership.role != "Admin" %}
+                              <form method="post"
+                                    action="{% url "events:event-update-members" pk=event.id user_id=membership.user.id %}">
+                                {% csrf_token %}
+                                <button class="btn btn-outline-warning">
+                                  Upraise
+                                </button>
+                              </form>
+                            {% endif %}
+                            <form method="post"
+                                  action="{% url "events:event-reject-members" pk=event.id user_id=membership.user.id stay="inside" %}">
+                              {% csrf_token %}
+                              <button class="btn btn-outline-danger">
+                                Remove
+                              </button>
+                            </form>
+                          {% endif %}
+                        </div>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  <p class="text-secondary">No members</p>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+          <!-- Connections (only if NOT private) -->
+          {% if event.accessibility != "Private" %}
+            <div class="card bg-dark text-white shadow-sm">
+              <div class="card-body">
+                <h5 class="fw-semibold mb-3">Available friends</h5>
+
+                {% if connects %}
+                  <ul class="list-group list-group-flush">
+                    {% for user in connects %}
+                      <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between align-items-center">
+                        {{ user.username }}
+                        <form method="post"
+                              action="{% url "events:event-add-members" pk=event.id user_id=user.id %}">
+                          {% csrf_token %}
+                          <button class="btn btn-outline-info">
+                            Invite
+                          </button>
+                        </form>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  <p class="text-secondary">No available users</p>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+
+        </div>
+
+      </div>
+    </div>
+
+    {% include "modals/invite_member_modal.html" %}
+  {% else %}
+    <h3>Oh, well</h3>
+    <p>Seems like it’s broken</p>
+  {% endif %}
+
+{% endblock %}

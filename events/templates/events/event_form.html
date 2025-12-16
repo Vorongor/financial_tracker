@@ -1,0 +1,115 @@
+{% extends "includes/index.html" %}
+{% load static %}
+{% block content %}
+
+  <div class="container d-flex justify-content-center align-items-center"
+       style="min-height: 80vh;">
+
+    <div
+        class="col-12 col-md-6 col-lg-5 p-4 bg-dark text-white rounded shadow-lg position-relative">
+
+      <!-- Back button -->
+      <a href="{% url 'events:event-hero' %}"
+         class="position-absolute"
+         style="top: 20px; left: 20px;">
+        <img src="{% static 'assets/images/backward-svg-white.svg' %}"
+             width="30"
+             height="30"
+             alt="Back">
+      </a>
+
+      <!-- Header -->
+      <div class="text-center mb-4">
+        <img src="{% static 'assets/images/calendar-event-svg_white.svg' %}"
+             width="60"
+             height="60"
+             class="mb-3"
+             alt="Event Calendar">
+        <h2 class="fw-bold">Create Event</h2>
+        <p class="text-secondary">Set up all event information</p>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
+
+        <!-- Name -->
+        <div class="form-floating mb-3 text-secondary">
+          {{ form.name }}
+          <label>Name</label>
+          {{ form.name.errors }}
+        </div>
+
+        <!-- Description -->
+        <div class="form-floating mb-3 text-secondary">
+          {{ form.description }}
+          <label>Description</label>
+          {{ form.description.errors }}
+        </div>
+
+        <!-- Planned amount -->
+        <div class="form-floating mb-3 text-secondary">
+          {{ form.planned_amount }}
+          <label>Planned amount</label>
+          {{ form.planned_amount.errors }}
+        </div>
+
+        <!-- Type -->
+        <div class="mb-3">
+          <label class="form-label text-secondary">Event type</label>
+          {{ form.type }}
+          {{ form.type.errors }}
+        </div>
+
+        <!-- Accessibility -->
+        <div class="mb-3">
+          <label class="form-label text-secondary">Accessibility</label>
+          {{ form.accessibility }}
+          {{ form.accessibility.errors }}
+        </div>
+
+        <!-- Status -->
+        <div class="mb-3">
+          <label class="form-label text-secondary">Status</label>
+          {{ form.status }}
+          {{ form.status.errors }}
+        </div>
+
+        <!-- Start date -->
+        <div class="form-floating mb-3 text-secondary">
+          {{ form.start_date }}
+          <label>Start date</label>
+          {{ form.start_date.errors }}
+        </div>
+
+        <!-- End date -->
+        <div class="form-floating mb-4 text-secondary">
+          {{ form.end_date }}
+          <label>End date</label>
+          {{ form.end_date.errors }}
+        </div>
+        <!-- Add members -->
+        {% if form.participants.field.choices %}
+          <div class="mb-4">
+            <label class="form-label text-secondary">
+              Invite participants
+            </label>
+            {{ form.participants }}
+            {{ form.participants.errors }}
+          </div>
+        {% endif %}
+
+        <button class="btn btn-primary btn-lg w-100">
+          Create Event
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+{% endblock %}

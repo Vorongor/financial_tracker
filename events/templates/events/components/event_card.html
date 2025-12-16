@@ -1,0 +1,30 @@
+<a href="{% url 'events:event-detail' pk=event.id %}"
+   class="text-decoration-none text-white">
+
+  <div class="card bg-dark h-100 shadow-sm border-secondary event-card">
+    <div class="card-body text-center fs-3">
+
+      <div class="mb-3 text-success">
+        {% include "events/components/event_icon.html" with type=event.type %}
+      </div>
+
+      <h5 class="card-title fw-bold text-white fs-2">
+        {{ event.name }}
+      </h5>
+
+      <p class="card-text text-secondary small fs-4 card-description">
+        {{ event.description|default:"No description" }}
+      </p>
+
+      <div class="d-flex justify-content-between small text-secondary mt-3">
+        <span class="badge bg-outline-secondary">
+          {{ event.get_type_display }}
+        </span>
+        <span>
+          {{ event.get_status_display }}
+        </span>
+      </div>
+
+    </div>
+  </div>
+</a>

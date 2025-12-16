@@ -1,0 +1,123 @@
+{% extends "includes/index.html" %}
+{% load static %}
+
+{% block content %}
+
+  <div class="mt-6 container d-flex justify-content-center align-items-center"
+       style="min-height: 80vh;">
+
+    <div
+        class="col-12 col-md-6 col-lg-5 p-4 bg-dark text-white rounded shadow-lg position-relative">
+      <a href="{% url "profile-page" pk=object.id %}" class="position-absolute"
+         style="top: 20px; left: 20px;">
+        <img src="{% static 'assets/images/backward-svg-white.svg' %}"
+             width="30"
+             height="30"
+             class="mb-3"
+             alt="Back">
+      </a>
+      <div class="text-center mb-4">
+        <img src="{% static 'assets/images/edit-svg-white.svg' %}" width="60"
+             height="60" class="mb-3">
+        <h2 class="fw-bold">Edit profile</h2>
+        <p class="text-secondary">Modify your personal information</p>
+      </div>
+
+      <form method="post" action="">
+        {% csrf_token %}
+        {% if form.errors %}
+          <div class="alert alert-danger">
+            Please correct the errors below.
+          </div>
+        {% endif %}
+        <div class="form-floating text-secondary mb-4">
+          <input type="text"
+                 name="username"
+                 class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+                 id="usernameInput"
+                 value="{{ form.username.value|default:'' }}"
+                 required>
+          <label for="usernameInput">Username</label>
+          {% for error in form.username.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="form-floating text-secondary mb-4">
+          <input type="email"
+                 name="email"
+                 class="form-control {% if form.email.errors %}is-invalid{% endif %}"
+                 id="emailInput"
+                 value="{{ form.email.value|default:'' }}"
+                 required>
+          <label for="emailInput">Email</label>
+          {% for error in form.email.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="form-floating text-secondary mb-4">
+          <input type="text"
+                 name="first_name"
+                 class="form-control {% if form.first_name.errors %}is-invalid{% endif %}"
+                 id="firstNameInput"
+                 value="{{ form.first_name.value|default:'' }}"
+                 required>
+          <label for="firstNameInput">First name</label>
+          {% for error in form.first_name.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="form-floating text-secondary mb-4">
+          <input type="text"
+                 name="last_name"
+                 class="form-control {% if form.last_name.errors %}is-invalid{% endif %}"
+                 id="lastNameInput"
+                 value="{{ form.last_name.value|default:'' }}"
+                 required>
+          <label for="lastNameInput">Last name</label>
+          {% for error in form.last_name.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="form-floating text-secondary mb-4">
+          <input type="text"
+                 name="job"
+                 class="form-control {% if form.job.errors %}is-invalid{% endif %}"
+                 id="JobInput"
+                 value="{{ form.job.value|default:'' }}"
+                 required>
+          <label for="JobInput">Job</label>
+          {% for error in form.job.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="form-floating text-secondary mb-4">
+          <input type="number"
+                 name="salary"
+                 class="form-control {% if form.salary.errors %}is-invalid{% endif %}"
+                 id="SalaryInput"
+                 value="{{ form.salary.value|default:'' }}"
+                 required>
+          <label for="SalaryInput">Salary</label>
+          {% for error in form.salary.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="form-floating text-secondary mb-4">
+          <input type="text"
+                 name="default_currency"
+                 class="form-control {% if form.default_currency.errors %}is-invalid{% endif %}"
+                 id="DefaultCurrencyInput"
+                 value="{{ form.default_currency.value|default:'' }}"
+                 required>
+          <label for="DefaultCurrencyInput">Default Currency</label>
+          {% for error in form.default_currency.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <button class="w-100 btn btn-lg btn-primary" type="submit">
+          Update
+        </button>
+      </form>
+    </div>
+  </div>
+{% endblock %}

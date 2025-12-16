@@ -1,0 +1,59 @@
+{% extends "includes/index.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1>Events manager</h1>
+  <a href="{% url 'events:private-event-create' %}"
+     class="btn btn-success">
+    Create new event
+  </a>
+</div>
+
+{% if invites %}
+  <div class="alert alert-warning">
+    <h5 class="mb-3">New invitations</h5>
+
+    <div class="table-responsive">
+      <table class="table table-dark table-hover align-middle">
+        <thead>
+        <tr>
+          <th>Event</th>
+          <th>From</th>
+          <th></th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for invite in invites %}
+          <tr>
+            <td>{{ invite.event.name }}</td>
+            <td>{{ invite.event.creator.username }}</td>
+            <td>
+              <form method="post"
+                    action="{% url 'events:event-accept-members' pk=invite.event.id %}">
+                {% csrf_token %}
+                <button class="btn btn-success btn-sm">Accept</button>
+              </form>
+            </td>
+            <td>
+              <form method="post"
+                    action="{% url 'events:event-reject-members' pk=invite.event.id user_id=user.id stay="no" %}">
+                {% csrf_token %}
+                <button class="btn btn-danger btn-sm">Reject</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endif %}
+
+{% include "events/components/event_list_section.html" with title="Private events" events=private_events %}
+
+{% include "events/components/event_list_section.html" with title="Public events" events=public_events %}
+
+{% include "events/components/event_list_section.html" with title="Group events" events=group_events %}
+
+{% endblock %}

@@ -2,15 +2,10 @@
 .btn-secondary,
 .btn-secondary:hover,
 .btn-secondary:focus {
-  color: #333;
-  text-shadow: none;
-}
-
-body {
-  text-shadow: 0 .05rem .1rem rgba(0, 0, 0, .5);
-  box-shadow: inset 0 0 5rem rgba(0, 0, 0, .5);
+    color: #333;
+    text-shadow: none;
 }
 
 .cover-container {
-  max-width: 1240px;
+    max-width: 1440px;
 }

@@ -1,0 +1,54 @@
+<div class="modal fade" id="topUpModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <form method="post" action="{% url 'budget-top-up' %}"
+            class="bg-dark text-white">
+        {% csrf_token %}
+
+        <div class="modal-header">
+          <h5 class="modal-title">Top up your budget</h5>
+          <button type="button" class="btn-close btn-close-white"
+                  data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body d-flex flex-column align-items-center
+justify-content-center g-5">
+          <div class="form-floating text-secondary mb-4">
+            <input type="number"
+                   name="amount"
+                   class="form-control {% if form.amount.errors %}is-invalid{% endif %}"
+                   id="amountInput"
+                   value="{{ form.amount.value|default:'' }}"
+                   required>
+            <label for="amountInput">Top up amount</label>
+            {% for error in form.amount.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="form-floating text-secondary mb-4">
+            <input type="text"
+                   name="note"
+                   class="form-control {% if form.note.errors %}is-invalid{% endif %}"
+                   id="noteInput"
+                   value="{{ form.note.value|default:'' }}"
+                   required>
+            <label for="noteInput">Comment</label>
+            {% for error in form.note.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-outline-success">
+            Submit
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</div>

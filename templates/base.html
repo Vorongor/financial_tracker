@@ -9,7 +9,8 @@
         content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
   <meta name="generator" content="Hugo 0.84.0">
   <title>{% block title %}Financer{% endblock %}</title>
-  <link rel="icon" type="image/svg+xml" href="{% static 'assets/brand/pocket-svg.svg' %}">
+  <link rel="icon" type="image/svg+xml"
+        href="{% static 'assets/images/pocket-svg.svg' %}">
   <link rel="canonical"
         href="https://getbootstrap.com/docs/5.0/examples/cover/">
   <link
@@ -30,17 +31,18 @@
           }
       }
   </style>
-  <link href="{% static 'css/cover.css' %}" rel="stylesheet">
-  <link href="{% static 'css/headers.css' %}" rel="stylesheet">
-  <link href="{% static 'css/signin.css' %}" rel="stylesheet">
+  <link href="{% static "css/cover.css" %}" rel="stylesheet">
+  <link href="{% static "css/headers.css" %}" rel="stylesheet">
+  <link href="{% static "css/signin.css" %}" rel="stylesheet">
+  <link href="{% static "css/style.css" %}" rel="stylesheet">
 </head>
-<body class="d-flex h-100 text-center text-white bg-dark">
+<body class="d-flex text-center text-white bg-dark">
 
 <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
   {% block header %}
     {% include "includes/header.html" %}
   {% endblock %}
-  <main class="px-3">
+  <main>
     {% block content %}
     {% endblock %}
   </main>

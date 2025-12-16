@@ -1,3 +1,5 @@
+from urllib import request
+
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
@@ -7,7 +9,7 @@ User = get_user_model()
 
 class UserRegisterForm(UserCreationForm):
     class Meta:
-        model = User
+        model = get_user_model()
         fields = [
             "username",
             "email",
@@ -77,3 +79,24 @@ class UserRegisterForm(UserCreationForm):
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError("This username is already taken.")
         return username
+
+
+class UserUpdateForm(forms.ModelForm):
+    class Meta:
+        model = get_user_model()
+        fields = [
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "job",
+            "salary",
+            "default_currency",
+        ]
+
+
+class UserKeyConnectForm(forms.Form):
+    key = forms.CharField(
+        max_length=255,
+        label="Unique key"
+    )

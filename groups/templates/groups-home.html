@@ -1,0 +1,66 @@
+{% extends "includes/index.html" %}
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Groups manager</h1>
+    <a href="{% url 'create-group' %}"
+       class="btn btn-success">
+      Create new group
+    </a>
+  </div>
+  {% if invites %}
+    <div class="alert alert-warning">
+      <h5 class="mb-3">New invitations</h5>
+
+      <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle">
+          <thead>
+          <tr>
+            <th>Group</th>
+            <th>From</th>
+            <th></th>
+            <th></th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for invite in invites %}
+            <tr>
+              <td>{{ invite.group.name }}</td>
+              <td>{{ invite.group.creator.username }}</td>
+              <td>
+                <form method="post"
+                      action="{% url "group-accept-invite" pk=invite.group.id user_id=user.id %}">
+                  {% csrf_token %}
+                  <button class="btn btn-success btn-sm">Accept</button>
+                </form>
+              </td>
+              <td>
+                <form method="post"
+                      action="{% url "group-reject-invite" pk=invite.group.id user_id=user.id stay="no"%}">
+                  {% csrf_token %}
+                  <button class="btn btn-danger btn-sm">Reject</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if groups %}
+    <h3 class="mt-4">List of active groups</h3>
+    <div class="d-flex flex-row flex-wrap justify-content-center align-items-center align-center gap-5">
+      {% for group in groups %}
+        <div style="width: 280px; height: 320px;">
+          {% include "groups/components/group_card.html" with group=group %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-secondary mt-3">
+      No active groups yet.
+    </p>
+  {% endif %}
+
+{% endblock %}

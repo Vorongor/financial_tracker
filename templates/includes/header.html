@@ -6,7 +6,7 @@
           class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start w-100">
         <a href="{% url 'dashboard:dashboard' %}"
            class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none">
-          <img src="{% static 'assets/brand/pocket-svg-white.svg' %}"
+          <img src="{% static 'assets/images/pocket-svg-white.svg' %}"
                alt="Financer Logo"
                width="36" height="36"
                class="me-2">
@@ -14,12 +14,13 @@
         </a>
         {% if user.is_authenticated %}
           <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
-            <li><a href="#" class="nav-link px-2 text-secondary">Home</a></li>
-            <li><a href="{% url "profile-page" pk=user.id %}" class="nav-link px-2 text-white">Profile</a></li>
-            <li><a href="#" class="nav-link px-2 text-white">Group manager</a>
+            <li><a href="{% url "dashboard:personal-dash" %}" class="nav-link px-2 fs-2 text-white">Home</a></li>
+            <li><a href="{% url "profile-page" pk=user.id %}" class="nav-link px-2 fs-2 text-white">Profile</a></li>
+            <li><a href="{% url "groups-home" %}" class="nav-link px-2 fs-2 text-white">Groups</a>
             </li>
-            <li><a href="#" class="nav-link px-2 text-white">Events</a></li>
-            <li><a href="#" class="nav-link px-2 text-white">About</a></li>
+            <li><a href="{% url "events:event-hero" %}" class="nav-link px-2 fs-2 text-white">Events</a></li>
+            <li><a href="{% url "community-list" %}" class="nav-link px-2 fs-2 text-white">Community</a></li>
+            <li><a href="{% url "finances-home" %}" class="nav-link px-2 fs-2 text-white">About</a></li>
           </ul>
           <form method="post" action="{% url "logout" %}" class="text-end">
             {% csrf_token %}
