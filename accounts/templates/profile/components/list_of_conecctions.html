@@ -1,0 +1,33 @@
+<div class="mb-3">
+  <h3 class="mb-3 mt-5">My connections</h3>
+  <ul class="d-flex flex-column gap-2 list-group">
+    {% for connection in connections|slice:":4" %}
+      <li class="d-flex flex-row align-center justify-content-around list-group-item list-group-item-dark">
+        <p class="text-dark">
+          {% if connection.from_user.id == user.id %}
+            {{ connection.to_user.username }}
+            ({{ connection.to_user.first_name }}
+            {{ connection.to_user.last_name }})
+          {% else %}
+            {{ connection.from_user.username }}
+            ({{ connection.from_user.first_name }}
+            {{ connection.from_user.last_name }})
+          {% endif %}
+        </p>
+        <form method="post"
+              action="{% url 'reject-connect' connection.id %}">
+          {% csrf_token %}
+          <button class="btn btn-outline-danger">
+            Delete
+          </button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+  {% if connections|length > 4 %}
+    <a href="{% url 'community-list' %}"
+       class="small text-white mt-2 d-inline-block">
+      View all →
+    </a>
+  {% endif %}
+</div>

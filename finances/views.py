@@ -1,22 +1,23 @@
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse_lazy, reverse
+from django.urls import reverse_lazy
 from django.utils import timezone
-from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 from django.views.generic import (
     TemplateView,
     UpdateView,
-    CreateView,
+    CreateView, ListView,
 )
 
 from events.models import Event
 from finances.custom_mixins import SuccessUrlFromNextMixin
 from finances.models import Budget, Transaction
-from finances.forms import UpdateBudgetForm, TransferCreateForm, TopUpBudgetForm
-from finances.services.transfers import transfer_between_budgets
+from finances.forms import UpdateBudgetForm, TransferCreateForm, \
+    TopUpBudgetForm
+from finances.services.transfers_service import transfer_between_budgets
 from groups.models import Group
 
 User = get_user_model()
@@ -44,38 +45,43 @@ class BudgetUpdateView(LoginRequiredMixin, UpdateView):
 
 class TransferCreateView(
     LoginRequiredMixin,
-    SuccessUrlFromNextMixin,
-    CreateView,):
-    model = Transaction
-    form_class = TransferCreateForm
-    template_name = "transactions/transaction_form.html"
-
+    View, ):
     OWNER_MODELS = {
         "event": Event,
         "group": Group,
         "user": User,
     }
 
-    def form_valid(self, form):
-        user = self.request.user
+    def post(self, request, content_type, object_id):
+        form = TransferCreateForm(request.POST)
 
+        if not form.is_valid():
+            messages.error(request, "Invalid data")
+            return redirect(request.META.get("HTTP_REFERER"))
+
+        user = request.user
         from_budget = user.budget
-        to_budget = self.get_budget()  # Event / Group / User
+        to_budget = self.get_budget(
+            content_type=content_type,
+            object_id=object_id
+        )
+        date = form.cleaned_data.get("date") or timezone.now().date()
 
         transfer_between_budgets(
             amount=form.cleaned_data["amount"],
             from_budget=from_budget,
             to_budget=to_budget,
             payer=user,
-            date=form.cleaned_data["date"],
+            date=date,
             category=form.cleaned_data.get("category"),
             note=form.cleaned_data.get("note", ""),
         )
 
-        return HttpResponseRedirect(self.get_success_url())
+        messages.success(request, "Transaction created successfully")
+        return redirect(request.META.get("HTTP_REFERER"))
 
-    def get_budget(self):
-        owner = self.get_owner()
+    def get_budget(self, content_type, object_id):
+        owner = self.get_owner(content_type, object_id)
         budget = owner.budget
 
         if not budget:
@@ -83,15 +89,13 @@ class TransferCreateView(
 
         return budget
 
-    def get_owner(self):
-        content_type = self.kwargs["content_type"]
-        object_id = self.kwargs["object_id"]
-
+    def get_owner(self, content_type, object_id):
         model = self.OWNER_MODELS.get(content_type)
         if not model:
             raise ValueError("Invalid owner type")
 
         return get_object_or_404(model, pk=object_id)
+
 
 class TopUpBudgetView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
@@ -110,7 +114,28 @@ class TopUpBudgetView(LoginRequiredMixin, View):
             note=form.cleaned_data.get("note", ""),
         )
 
-        # recalc явно
         request.user.budget.recalc()
 
         return redirect(request.META.get("HTTP_REFERER", "/"))
+
+
+class TransactionListView(LoginRequiredMixin, ListView):
+    model = Transaction
+    template_name = "transactions/transaction_list.html"
+
+    TARGET_HANDLERS = {
+        "user": "get_user_transactions",
+        "event": "get_event_transactions",
+        "group": "get_group_transactions",
+    }
+
+    def get_queryset(self):
+        target = self.kwargs.get("target")
+        pk = self.kwargs.get("pk")
+
+        handler_name = self.TARGET_HANDLERS.get(target)
+        if not handler_name:
+            raise Http404("Invalid target")
+
+        handler = getattr(self, handler_name)
+        return handler(pk)

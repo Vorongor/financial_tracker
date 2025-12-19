@@ -1,5 +1,7 @@
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
@@ -8,18 +10,30 @@ from django.views.generic import CreateView, DetailView, UpdateView, ListView
 
 from accounts.forms import UserRegisterForm, UserUpdateForm, UserKeyConnectForm
 from accounts.models import UserConnection
-from accounts.services.receive_connection import get_user_connections
+from accounts.services.receive_connection import get_user_connections, \
+    get_user_from_uk
 from accounts.services.user_connection_control import invite_user_to_connect, \
     approve_user_to_connect, reject_user_to_connect
 from events.models import Event
+from events.services.event_invitation import create_event_invitation
 from finances.forms import TopUpBudgetForm
 from groups.models import Group
+from groups.services.group_invitation import create_group_invitation
 
 
 class RegisterView(CreateView):
     template_name = "registration/register.html"
     form_class = UserRegisterForm
-    success_url = reverse_lazy("dashboard:personal-dash")
+    success_url = reverse_lazy("login")
+
+    def form_valid(self, form):
+        form.save()
+        messages.success(
+            self.request,
+            "Registration successful. Please log in.",
+            extra_tags="registration",
+        )
+        return redirect(self.success_url)
 
 
 class ProfileView(LoginRequiredMixin, DetailView):
@@ -101,6 +115,8 @@ class CommunityListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context["uniq_key_form"] = UserKeyConnectForm()
         context["connections"] = get_user_connections(self.request.user.id)
+        context["content_type"] = "connection"
+        context["object_id"] = self.request.user.id
 
         return context
 
@@ -137,3 +153,53 @@ class UserConnectRejectView(LoginRequiredMixin, View):
 
         return redirect(request.META.get("HTTP_REFERER", "profile-dashboard"))
 
+
+class UserUkConnectView(LoginRequiredMixin, View):
+    def post(self, request, invite_type, sender_id):
+        form = UserKeyConnectForm(request.POST)
+
+        if not form.is_valid():
+            messages.error(
+                request,
+                "Invalid key format",
+                extra_tags="community")
+            return redirect(request.META.get("HTTP_REFERER"))
+
+        unik_key = form.data.get("unik_key")
+
+        try:
+            recipient = get_user_from_uk(unik_key)
+            if invite_type == "connection":
+                invite_user_to_connect(
+                    sender=request.user,
+                    recipient=recipient
+                )
+            elif invite_type == "event":
+                create_event_invitation(
+                    list_of_connects=[recipient.id, ],
+                    event_id=sender_id
+                )
+            elif invite_type == "group":
+                create_group_invitation(
+                    list_of_connects=[recipient.id, ],
+                    group_id=sender_id
+                )
+            messages.success(
+                request,
+                "Connection request sent successfully.",
+                extra_tags="community"
+            )
+        except ValidationError as e:
+            messages.error(
+                request,
+                e.message,
+                extra_tags="community"
+            )
+        except get_user_model().DoesNotExist:
+            messages.error(
+                request,
+                "User not found.",
+                extra_tags="community"
+            )
+
+        return redirect(request.META.get("HTTP_REFERER", "profile-dashboard"))

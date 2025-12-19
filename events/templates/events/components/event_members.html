@@ -1,0 +1,46 @@
+<div class="card-body">
+  <h5 class="fw-semibold mb-3">Members</h5>
+  {% if members %}
+    <ul class="list-group list-group-flush">
+      {% for membership in members %}
+        <li class="list-group-item bg-dark text-white border-secondary">
+          <div>
+            <div
+                class="fw-semibold">{{ membership.user.username }}
+            </div>
+            <small class="text-secondary">
+              {{ membership.role }} · {{ membership.status }}
+              {% if user.id == membership.user.id %}
+                (me){% endif %}
+            </small>
+          </div>
+          <div
+              class="d-flex flex-row justify-content-center gap-2">
+            {% if user_role in "Admin,Creator" and membership.role != "Creator" %}
+              {% if membership.status != "Pending" and membership.role != "Admin" %}
+                <form method="post"
+                      action="{% url "events:event-promote-members" pk=event.id user_id=membership.user.id %}">
+                  {% csrf_token %}
+                  <button class="btn btn-outline-warning">
+                    Upraise
+                  </button>
+                </form>
+              {% endif %}
+              {% if  user_role in "Admin,Creator" and user.id != membership.user.id %}
+                <form method="post"
+                      action="{% url "events:event-reject-members" pk=event.id user_id=membership.user.id stay="inside" %}">
+                {% csrf_token %}
+                <button class="btn btn-outline-danger">
+                  Remove
+                </button>
+              {% endif %}
+            </form>
+            {% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-secondary">No members</p>
+  {% endif %}
+</div>

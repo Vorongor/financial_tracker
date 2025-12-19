@@ -1,0 +1,57 @@
+<div class="mb-3">
+  <h5 class="text-white">
+    <strong>Invitation</strong>
+  </h5>
+  <ul class="d-flex flex-column gap-2 list-group">
+    {% for connect in take_to_connect|slice:":2" %}
+      <li class="d-flex flex-row align-center justify-content-around list-group-item list-group-item-dark">
+        <p class="text-dark text-center mb-0">
+          Sent to:<strong> {{ connect.to_user.username }}</strong>
+          - {{ connect.status }}
+        </p>
+        <form method="post"
+              action="{% url 'reject-connect' connect.id %}">
+          {% csrf_token %}
+          <button class="btn btn-outline-danger">
+            Delete
+          </button>
+        </form>
+      </li>
+    {% endfor %}
+    {% for invite in invite_to_connect|slice:":3" %}
+      <li class="d-flex flex-row align-items-center align-center justify-content-around list-group-item list-group-item-dark">
+        <p class="text-dark text-center mb-0">
+          Receive from:<strong> {{ invite.from_user.username }}</strong>
+          - {{ invite.status }}
+        </p>
+        <form method="post"
+              action="{% url 'approve-connect' invite.id %}">
+          {% csrf_token %}
+          <button class="btn btn-outline-success">
+            Approve
+          </button>
+        </form>
+        <form method="post"
+              action="{% url 'reject-connect' invite.id %}">
+          {% csrf_token %}
+          <button class="btn btn-outline-danger">
+            Reject
+          </button>
+        </form>
+        <form method="post"
+              action="{% url 'reject-connect' invite.id %}">
+          {% csrf_token %}
+          <button class="btn btn-outline-danger">
+            Block
+          </button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+  {% if take_to_connect|length > 2 or invite_to_connect|length > 3 %}
+    <a href="{% url 'community-list' %}"
+       class="small text-white mt-2 d-inline-block">
+      View all →
+    </a>
+  {% endif %}
+</div>

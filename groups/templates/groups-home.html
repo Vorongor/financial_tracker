@@ -2,7 +2,7 @@
 {% block content %}
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h1>Groups manager</h1>
-    <a href="{% url 'create-group' %}"
+    <a href="{% url 'groups:create' %}"
        class="btn btn-success">
       Create new group
     </a>
@@ -28,14 +28,14 @@
               <td>{{ invite.group.creator.username }}</td>
               <td>
                 <form method="post"
-                      action="{% url "group-accept-invite" pk=invite.group.id user_id=user.id %}">
+                      action="{% url "groups:accept-invite" pk=invite.group.id user_id=user.id %}">
                   {% csrf_token %}
                   <button class="btn btn-success btn-sm">Accept</button>
                 </form>
               </td>
               <td>
                 <form method="post"
-                      action="{% url "group-reject-invite" pk=invite.group.id user_id=user.id stay="no"%}">
+                      action="{% url "groups:reject-invite" pk=invite.group.id user_id=user.id stay="no"%}">
                   {% csrf_token %}
                   <button class="btn btn-danger btn-sm">Reject</button>
                 </form>
@@ -52,7 +52,7 @@
     <h3 class="mt-4">List of active groups</h3>
     <div class="d-flex flex-row flex-wrap justify-content-center align-items-center align-center gap-5">
       {% for group in groups %}
-        <div style="width: 280px; height: 320px;">
+        <div style="width: 300px; height: 380px;">
           {% include "groups/components/group_card.html" with group=group %}
         </div>
       {% endfor %}

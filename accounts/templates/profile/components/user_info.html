@@ -1,0 +1,21 @@
+<ul class="list-group list-group-flush ">
+  <li class="list-group-item bg-dark text-white align-items-lg-start">
+    <strong>Full name:</strong> {{ object }}
+  </li>
+
+  <li class="list-group-item bg-dark text-white">
+    <strong>Email:</strong> {{ object.email }}
+  </li>
+
+  <li class="list-group-item bg-dark text-white">
+    <strong>Job:</strong> {{ object.job|default:"—" }}
+  </li>
+
+  <li class="list-group-item bg-dark text-white">
+    <strong>Salary:</strong> {{ object.salary }} {{ object.default_currency }}
+  </li>
+
+  <li class="list-group-item bg-dark text-white">
+    <strong>Default Currency:</strong> {{ object.default_currency }}
+  </li>
+</ul>

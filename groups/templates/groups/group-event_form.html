@@ -73,10 +73,9 @@
                    class="form-label text-secondary">
               Accessibility
             </label>
-            <select class="form-control text-secondary " name="accessibility"
+            <select disabled class="form-control text-secondary " name="accessibility"
                     id="accessibility">
-              <option>Private</option>
-              <option>Public</option>
+              <option>Group</option>
             </select>
 
             {% if form.accessibility.errors %}
@@ -106,16 +105,6 @@
           <label>End date</label>
           {{ form.end_date.errors }}
         </div>
-        <!-- Add members -->
-        {% if form.participants.field.choices %}
-          <div class="mb-4">
-            <label class="form-label text-secondary">
-              Invite participants
-            </label>
-            {{ form.participants }}
-            {{ form.participants.errors }}
-          </div>
-        {% endif %}
 
         <button class="btn btn-primary btn-lg w-100">
           Create Event

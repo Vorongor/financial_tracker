@@ -6,7 +6,9 @@ from accounts.views import (
     UpdateProfileView,
     CommunityListView,
     UserConnectView,
-    UserConnectApproveView, UserConnectRejectView,
+    UserConnectApproveView,
+    UserConnectRejectView,
+    UserUkConnectView,
 )
 
 urlpatterns = [
@@ -45,10 +47,10 @@ urlpatterns = [
         UserConnectRejectView.as_view(),
         name="reject-connect"
     ),
-    # path(
-    #     "aprove-connect/<int:connection_id>/",
-    #     UserConnectApproveView.as_view(),
-    #     name="approve-connect"
-    # )
+    path(
+        "uk-invite/<str:invite_type>/<int:sender_id>/",
+        UserUkConnectView.as_view(),
+        name="user-invite-uk"
+    )
 
 ]

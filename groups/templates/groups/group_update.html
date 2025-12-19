@@ -1,0 +1,19 @@
+{% extends "includes/index.html" %}
+{% load static %}
+{% block content %}
+  <form method="post">
+    {% csrf_token %}
+
+    <h5>Group</h5>
+    {{ group_form.as_p }}
+
+    <hr>
+
+    <h5>Budget</h5>
+    {{ budget_form.as_p }}
+
+    <button class="btn btn-primary">
+      Save changes
+    </button>
+  </form>
+{% endblock %}

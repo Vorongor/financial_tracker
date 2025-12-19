@@ -9,227 +9,36 @@
 
       <!-- LEFT SIDE: USER INFORMATION -->
       <div class="col-12 col-md-6">
-        <div
-            class="p-4 bg-transparent text-white rounded h-100 flex-column justify-content-between">
-          <div class="d-flex align-items-center mb-4">
-            <img src="{% static 'assets/images/profile-svg-white.svg' %}"
-                 class="me-3"
-                 alt="User avatar"
-                 width="64" height="64">
-            <div class="flex flex-column justify-content-start">
-              <h2 class="mb-0 flex flex-column justify-content-start">
-                {{ user.first_name }} {{ user.last_name }}
-              </h2>
-              <span
-                  class="d-block text-start text-secondary">@{{ user.username }}
-              </span>
-              <span class="d-block text-start text-secondary">
-                Uniq number: <strong
-                  class="text-white">{{ user.get_user_uniq_key }}</strong>
-              </span>
-            </div>
-          </div>
-
-          <ul class="list-group list-group-flush ">
-            <li class="list-group-item bg-dark text-white align-items-lg-start">
-              <strong>Full name:</strong> {{ object }}
-            </li>
-
-            <li class="list-group-item bg-dark text-white">
-              <strong>Email:</strong> {{ object.email }}
-            </li>
-
-            <li class="list-group-item bg-dark text-white">
-              <strong>Job:</strong> {{ object.job|default:"—" }}
-            </li>
-
-            <li class="list-group-item bg-dark text-white">
-              <strong>Salary:</strong> {{ object.salary }} {{ object.default_currency }}
-            </li>
-
-            <li class="list-group-item bg-dark text-white">
-              <strong>Default Currency:</strong> {{ object.default_currency }}
-            </li>
-          </ul>
-
-          <h3>Budget info..</h3>
-          {% if current_budget %}
-            <p>Current amount stayed: {{ current_budget.current_amount }}</p>
-            <p>Total income: {{ current_budget.total_income }}</p>
-            <p>Total expenses:{{ current_budget.total_expenses }}</p>
-          {% endif %}
-
-          <h3>Transaction history</h3>
-          {% if transaction_history %}
-            {% for transaction in transaction_history %}
-              <p>{{ transaction.get_short_description }}</p>
-            {% endfor %}
-          {% endif %}
-          <!-- BUTTONS -->
-          <div class="mt-4 d-flex gap-3 flex-wrap justify-content-center">
-            <a href="{% url 'profile-update' pk=object.id %}"
-               class="btn btn-outline-success d-inline-flex align-items-center gap-2"
-               role="button">
-              <svg
-                  width="46px" height="46px"
-                  viewBox="0 0 24 24" fill="currentColor"
-                  xmlns="http://www.w3.org/2000/svg">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round"
-                   stroke-linejoin="round" stroke="currentColor"
-                   stroke-width="0.096"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path fill-rule="evenodd" clip-rule="evenodd"
-                        d="M21.1213 2.70705C19.9497 1.53548 18.0503 1.53547 16.8787 2.70705L15.1989 4.38685L7.29289 12.2928C7.16473 12.421 7.07382 12.5816 7.02986 12.7574L6.02986 16.7574C5.94466 17.0982 6.04451 17.4587 6.29289 17.707C6.54127 17.9554 6.90176 18.0553 7.24254 17.9701L11.2425 16.9701C11.4184 16.9261 11.5789 16.8352 11.7071 16.707L19.5556 8.85857L21.2929 7.12126C22.4645 5.94969 22.4645 4.05019 21.2929 2.87862L21.1213 2.70705ZM18.2929 4.12126C18.6834 3.73074 19.3166 3.73074 19.7071 4.12126L19.8787 4.29283C20.2692 4.68336 20.2692 5.31653 19.8787 5.70705L18.8622 6.72357L17.3068 5.10738L18.2929 4.12126ZM15.8923 6.52185L17.4477 8.13804L10.4888 15.097L8.37437 15.6256L8.90296 13.5112L15.8923 6.52185ZM4 7.99994C4 7.44766 4.44772 6.99994 5 6.99994H10C10.5523 6.99994 11 6.55223 11 5.99994C11 5.44766 10.5523 4.99994 10 4.99994H5C3.34315 4.99994 2 6.34309 2 7.99994V18.9999C2 20.6568 3.34315 21.9999 5 21.9999H16C17.6569 21.9999 19 20.6568 19 18.9999V13.9999C19 13.4477 18.5523 12.9999 18 12.9999C17.4477 12.9999 17 13.4477 17 13.9999V18.9999C17 19.5522 16.5523 19.9999 16 19.9999H5C4.44772 19.9999 4 19.5522 4 18.9999V7.99994Z"
-                        fill="currentColor"></path>
-                </g>
-              </svg>
-              <span>Update</span>
-            </a>
-            <button
-                class="btn btn-outline-success d-inline-flex align-items-center gap-2"
-                data-bs-toggle="modal"
-                data-bs-target="#topUpModal">
-              <svg
-                  width="46px" height="46px"
-                  fill="currentColor" viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round"
-                   stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                      d="M22,4V5H5A1,1,0,0,0,5,7H21a1,1,0,0,1,1,1V19a2,2,0,0,1-2,2H13V14.414l1.293,1.293a1,1,0,0,0,1.414-1.414l-3-3a1,1,0,0,0-1.416,0l-3,3a1,1,0,0,0,1.414,1.414L11,14.414V21H4a2,2,0,0,1-2-2V5A2,2,0,0,1,4,3H21A1,1,0,0,1,22,4Z"></path>
-                </g>
-              </svg>
-              <span>Top up balance</span>
-            </button>
-            <a href="#"
-               class="btn btn-outline-danger d-inline-flex align-items-center gap-2">
-
-              <svg fill="currentColor" width="46px" height="46px"
-                   xmlns="http://www.w3.org/2000/svg"
-                   viewBox="0 0 24 24">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round"
-                   stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                      d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"></path>
-                </g>
-              </svg>
-              <span>Delete</span></a>
-          </div>
-
-        </div>
+        {% include "profile/components/top_of_profile.html" %}
+        {% include "profile/components/user_info.html" %}
+        {% include "profile/components/budget_section.html" %}
+        {% include "profile/components/transaction_history.html" %}
       </div>
 
       <!-- RIGHT SIDE: BUSINESS LOGIC PLACEHOLDER -->
       <div class="col-12 col-md-6">
-        <div class="w-100 h-100 p-4 bg-transparent text-white rounded"
-             style="min-height: 400px;">
-          <h3 class="mb-3">My events</h3>
-          <p class="text-light">
-            Event explanations ...
-          </p>
-          <ul class="d-flex flex-column gap-2 list-group">
-            {% for event in events %}
+        {#        {% include "" %}#}
 
-              <li class="list-group-item list-group-item-dark">
-                <a style="text-decoration: none"
-                   href="{% url "events:event-detail" pk=event.id %}"
-                   class="text-dark">
-                  {{ event.name }} — {{ event.status }} —
-                  {{ event.planned_amount }}
-                </a>
-              </li>
+        {% include "profile/components/events_list.html" %}
+        {% include "profile/components/group_list.html" %}
+        {% include "profile/components/list_of_conecctions.html" %}
+        {% include "profile/components/list_of_invitations.html" %}
 
-            {% endfor %}
-          </ul>
-          <h3 class="mb-3 mt-5">My Groups</h3>
-          <p class="text-light">
-            Groups explanations ...
-          </p>
-          <ul class="d-flex flex-column gap-2 list-group">
-            {% for group in groups %}
-              <li class="list-group-item list-group-item-dark">
-                <a style="text-decoration: none"
-                   href="{% url "group-detail" pk=group.id %}"
-                   class="text-dark">
-                  {{ group.name }} — {{ group.state }} —
-                  {{ group.budget.current_amount }}
-                </a>
-              </li>
-            {% endfor %}
-          </ul>
-          <h3 class="mb-3 mt-5">My connections</h3>
-          <p class="text-light">
-            List of connections:
-          </p>
-          <ul class="d-flex flex-column gap-2 list-group mb-3">
-            {% for connection in connections %}
-              <li class="d-flex flex-row align-center justify-content-around list-group-item list-group-item-dark">
-                <p class="text-dark">
-                  {% if connection.from_user.id == user.id %}
-                    {{ connection.to_user.username }}
-                    ({{ connection.to_user.first_name }}
-                    {{ connection.to_user.last_name }})
-                  {% else %}
-                    {{ connection.from_user.username }}
-                    ({{ connection.from_user.first_name }}
-                    {{ connection.from_user.last_name }})
-                  {% endif %}
-                </p>
-                <form method="post"
-                      action="{% url 'reject-connect' connection.id %}">
-                  {% csrf_token %}
-                  <button class="btn btn-outline-danger">
-                    Delete
-                  </button>
-                </form>
-              </li>
-            {% endfor %}
-          </ul>
-          <p class="text-white"><strong>Invitation</strong></p>
-          <ul class="d-flex flex-column gap-2 list-group">
-            {% for connect in take_to_connect %}
-              <li class="d-flex flex-row align-center justify-content-around list-group-item list-group-item-dark">
-                <p class="text-dark">
-                  Sent to: {{ connect.to_user.username }}
-                  - {{ connect.status }}
-                </p>
-                <form method="post"
-                      action="{% url 'reject-connect' connect.id %}">
-                  {% csrf_token %}
-                  <button class="btn btn-outline-danger">
-                    Delete
-                  </button>
-                </form>
-              </li>
-            {% endfor %}
-            {% for invite in invite_to_connect %}
-              <li class="d-flex flex-row align-center justify-content-around list-group-item list-group-item-dark">
-                <p class="text-dark">
-                  Receive from: {{ invite.from_user.username }}
-                  - {{ invite.status }}
-                </p>
-                <form method="post"
-                      action="{% url 'approve-connect' invite.id %}">
-                  {% csrf_token %}
-                  <button class="btn btn-outline-success">
-                    Approve
-                  </button>
-                </form>
-                <form method="post"
-                      action="{% url 'reject-connect' invite.id %}">
-                  {% csrf_token %}
-                  <button class="btn btn-outline-danger">
-                    Reject
-                  </button>
-                </form>
-              </li>
-            {% endfor %}
-          </ul>
+      </div>
+      <div class="mt-4 p-3 border border-secondary rounded">
+        <h5 class="text-secondary mb-2">
+          Statistics (coming soon)
+        </h5>
+
+        <div class="text-muted small">
+          Charts for income / expenses / trends will be displayed here.
+        </div>
+
+        <div class="d-flex justify-content-center align-items-center"
+             style="height: 160px;">
+    <span class="text-secondary fst-italic">
+      Graph placeholder
+    </span>
         </div>
       </div>
     </div>

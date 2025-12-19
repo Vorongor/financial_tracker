@@ -1,0 +1,6 @@
+<h3>Transaction history</h3>
+{% if transaction_history %}
+  {% for transaction in transaction_history %}
+    <p>{{ transaction.get_short_description }}</p>
+  {% endfor %}
+{% endif %}

@@ -4,7 +4,8 @@ from finances.views import (
     FinancesHomeView,
     BudgetUpdateView,
     TransferCreateView,
-    TopUpBudgetView
+    TopUpBudgetView,
+    TransactionListView,
 )
 
 urlpatterns = [
@@ -20,5 +21,10 @@ urlpatterns = [
         "budget/top-up/",
         TopUpBudgetView.as_view(),
         name="budget-top-up"
+    ),
+    path(
+        "<str:target>/history/<int:pk>/",
+        TransactionListView.as_view(),
+        name="transfer-history",
     )
 ]

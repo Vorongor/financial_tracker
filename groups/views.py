@@ -1,7 +1,8 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Q
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import (
@@ -13,11 +14,20 @@ from django.views.generic import (
 
 from accounts.services.receive_connection import get_user_connections
 from addition_info.choise_models import Status, Role
+from events.models import Event
 from finances.custom_mixins import SuccessUrlFromNextMixin
-from groups.forms import GroupCreateForm
-from groups.models import Group, GroupMembership
-from groups.services.group_invitation import create_group_invitation, \
-    accept_group_invitation, reject_group_invitation
+from finances.forms import TransferCreateForm, BudgetEditForm
+from groups.forms import GroupCreateForm, GroupEditForm, GroupEventCreateForm
+from groups.models import Group, GroupMembership, GroupEventConnection
+from groups.services.group_event_service import create_group_event, \
+    get_events_for_group
+from groups.services.group_invitation import (
+    create_group_invitation,
+    accept_group_invitation,
+    reject_group_invitation,
+    promote_group_member,
+    demote_group_member, leave_group,
+)
 
 
 class GroupsHomeView(LoginRequiredMixin, TemplateView):
@@ -43,7 +53,7 @@ class GroupsHomeView(LoginRequiredMixin, TemplateView):
 class GroupCreateView(LoginRequiredMixin, CreateView):
     model = Group
     form_class = GroupCreateForm
-    success_url = reverse_lazy("groups-home")
+    success_url = reverse_lazy("groups:home")
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -59,7 +69,7 @@ class GroupCreateView(LoginRequiredMixin, CreateView):
             group=self.object,
             user=self.request.user,
             status=Status.ACCEPTED,
-            role=Role.ADMIN,
+            role=Role.CREATOR,
         )
 
         participants_ids = form.cleaned_data["participants"]
@@ -82,9 +92,10 @@ class GroupDetailView(
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        group = self.object
         user = self.request.user
-        transaction_history = self.object.budget.transactions.all()
-        members = GroupMembership.objects.filter(group_id=self.object.id)
+        transaction_history = group.budget.transactions.all()
+        members = GroupMembership.objects.filter(group_id=group.id)
         users = [
             connect.other_user(user)
             for connect in get_user_connections(
@@ -96,17 +107,66 @@ class GroupDetailView(
                 flat=True
             )
         ]
-
+        user_role = members.filter(user=user).first().role
+        delete_permission = "Creator" if group.creator else "Admin"
+        context["related_events"] = get_events_for_group(group_id=group.id)
         context["transaction_history"] = transaction_history
         context["current_budget"] = self.object.budget.get_budget_data()
+        context["delete_permission"] = delete_permission
+        context["transaction_form"] = TransferCreateForm()
+        context["content_type"] = "group"
+        context["object_id"] = group.id
+        context["user_role"] = user_role
         context["connects"] = users
         context["members"] = members
         return context
 
 
+class GroupEditView(LoginRequiredMixin, View):
+    template_name = "groups/group_update.html"
+
+    def get(self, request, pk):
+        group = get_object_or_404(Group, pk=pk)
+        budget = group.budget
+
+        return render(
+            request,
+            self.template_name,
+            {
+                "group_form": GroupEditForm(instance=group),
+                "budget_form": BudgetEditForm(instance=budget),
+                "group": group,
+            }
+        )
+
+    @transaction.atomic
+    def post(self, request, pk):
+        group = get_object_or_404(Group, pk=pk)
+        budget = group.budget
+
+        group_form = GroupEditForm(request.POST, instance=group)
+        budget_form = BudgetEditForm(request.POST, instance=budget)
+
+        if group_form.is_valid() and budget_form.is_valid():
+            group_form.save()
+            budget_form.save()
+            budget.recalc()
+            return redirect("groups:detail", pk=pk)
+
+        return render(
+            request,
+            self.template_name,
+            {
+                "group_form": group_form,
+                "budget_form": budget_form,
+                "group": group,
+            }
+        )
+
+
 class GroupDeleteView(LoginRequiredMixin, DeleteView):
     model = Group
-    success_url = reverse_lazy("groups-home")
+    success_url = reverse_lazy("groups:home")
 
 
 class GroupInviteMemberView(LoginRequiredMixin, View):
@@ -118,9 +178,9 @@ class GroupInviteMemberView(LoginRequiredMixin, View):
 
         create_group_invitation(
             group_id=group.id,
-            list_of_connects=[user_id,]
+            list_of_connects=[user_id, ]
         )
-        return redirect("group-detail", pk=pk)
+        return redirect("groups:detail", pk=pk)
 
 
 class GroupAcceptInviteView(LoginRequiredMixin, View):
@@ -131,7 +191,7 @@ class GroupAcceptInviteView(LoginRequiredMixin, View):
             raise ValidationError("Group not found")
 
         accept_group_invitation(group_id=group.id, user_id=user_id)
-        return redirect("groups-home")
+        return redirect("groups:home")
 
 
 class GroupRejectInviteView(LoginRequiredMixin, View):
@@ -144,6 +204,71 @@ class GroupRejectInviteView(LoginRequiredMixin, View):
         reject_group_invitation(group_id=group.id, user_id=user_id)
 
         if stay == "inside":
-            return redirect("group-detail", pk=pk)
+            return redirect("groups:detail", pk=pk)
         else:
-            return redirect("groups-home")
+            return redirect("groups:home")
+
+
+class GroupPromoteView(LoginRequiredMixin, View):
+    def post(self, request, pk, user_id):
+        group = get_object_or_404(Group, pk=pk)
+
+        if not group:
+            raise ValidationError("Group not found")
+
+        promote_group_member(group_id=group.id, user_id=user_id)
+        return redirect("groups:detail", pk=pk)
+
+
+class GroupDemoteView(LoginRequiredMixin, View):
+    def post(self, request, pk, user_id):
+        group = get_object_or_404(Group, pk=pk)
+
+        if not group:
+            raise ValidationError("Group not found")
+
+        demote_group_member(group_id=group.id, user_id=user_id)
+        return redirect("groups:detail", pk=pk)
+
+
+class LeaveGroupView(LoginRequiredMixin, View):
+    def post(self, request, group_id):
+        leave_group(group_id=group_id, user_id=request.user.id)
+        return redirect("groups:home")
+
+
+class GroupEventsCreateView(LoginRequiredMixin, CreateView):
+    model = Event
+    form_class = GroupEventCreateForm
+    template_name = "groups/group-event_form.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.group = get_object_or_404(Group, pk=kwargs["group_id"])
+
+        if not GroupMembership.objects.filter(
+                group=self.group,
+                user=request.user,
+                status=Status.ACCEPTED
+        ).exists():
+            raise ValidationError("You are not a member of this group")
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        kwargs["group"] = self.group
+        return kwargs
+
+    def form_valid(self, form):
+        event = form.save(commit=False)
+        event.creator = self.request.user
+        event.accessibility = Event.Accessibility.GROUP
+        event.save()
+
+        with transaction.atomic():
+            event = create_group_event(
+                group=self.group,
+                event=event,
+            )
+        return redirect("groups:detail", pk=self.group.id)

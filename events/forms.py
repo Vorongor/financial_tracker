@@ -1,4 +1,6 @@
 from django import forms
+from django.forms import ModelForm
+from pkg_resources import require
 
 from accounts.services.receive_connection import get_user_connections
 from .models import Event
@@ -52,13 +54,14 @@ class EventPrivateCreateForm(forms.ModelForm):
             "status": forms.Select(attrs={
                 "class": "form-select"
             }),
-            "accessibility": forms.Select(attrs={
-                "class": "form-select"
-            }),
+            "accessibility": forms.Select(
+                attrs={"class": "form-select"},
+            )
         }
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user")
+        self.group = kwargs.pop("group", None)
         super().__init__(*args, **kwargs)
 
         connections = get_user_connections(user.id, "accepted")
@@ -86,8 +89,22 @@ class EventPrivateCreateForm(forms.ModelForm):
             )
         return cleaned_data
 
-    def save(self, commit = True):
+    def save(self, commit=True):
         event = super().save(commit=False)
         if commit:
             event.save()
         return event
+
+
+class EventEditForm(ModelForm):
+    class Meta:
+        model = Event
+        fields = (
+            "name",
+            "description",
+            "start_date",
+            "end_date",
+            "status",
+            "type",
+            "status",
+        )

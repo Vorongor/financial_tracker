@@ -1,15 +1,16 @@
-<a href="{% url "group-detail" pk=group.id %}"
-
+<a href="{% url "groups:detail" pk=group.id %}"
    class="text-decoration-none text-white">
+
   <div class="card bg-dark h-100 shadow-sm border-secondary event-card">
-    <div class="card-body text-center fs-3">
+    <div
+        class="card-body text-center fs-4 p-2 d-flex flex-column justify-content-between align-items-center">
       <div class="mb-3 text-success">
         {% include "groups/components/group_icon.html" with type=event.type %}
       </div>
-      <h5 class="card-title fw-bold text-white fs-2">
+      <h5 class="card-title fw-bold text-white fs-3 card-name">
         {{ group.name }}
       </h5>
-      <p class="card-text text-secondary small fs-4 card-description">
+      <p class="card-text text-secondary small fs-5 card-description">
         {{ group.description|default:"No description" }}
       </p>
       <div class="d-flex justify-content-center small text-secondary mt-3">

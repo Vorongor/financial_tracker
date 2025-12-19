@@ -1,0 +1,15 @@
+<div class="card-body">
+  <h5 class="fw-semibold mb-3">Transaction history</h5>
+
+  {% if transaction_history %}
+    <ul class="list-group list-group-flush">
+      {% for transaction in transaction_history %}
+        <li class="list-group-item bg-dark text-white border-secondary">
+          {{ transaction.get_short_description }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-secondary">No transactions yet</p>
+  {% endif %}
+</div>

@@ -56,3 +56,15 @@ ul {
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
+
+.card-name {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.modal-form-field {
+    display: block;
+    width: 300px;
+}

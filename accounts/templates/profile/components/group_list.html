@@ -1,0 +1,21 @@
+<div class="mb-3">
+  <h3 class="mb-3 mt-5">My Groups</h3>
+  <ul class="d-flex flex-column gap-2 list-group">
+    {% for group in groups|slice:":4" %}
+      <li class="list-group-item list-group-item-dark">
+        <a style="text-decoration: none"
+           href="{% url "groups:detail" pk=group.id %}"
+           class="text-dark">
+          {{ group.name }} — {{ group.state }} —
+          {{ group.budget.current_amount }}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+  {% if groups|length > 4 %}
+    <a href="{% url 'groups:home' %}"
+       class="small text-white mt-2 d-inline-block">
+      View all →
+    </a>
+  {% endif %}
+</div>

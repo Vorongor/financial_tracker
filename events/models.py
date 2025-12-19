@@ -63,7 +63,7 @@ class Event(models.Model):
     )
 
     class Meta:
-        db_table = "events_table"
+        db_table = "events"
 
     def __str__(self):
         return f"Event: {self.name} - {self.status}"

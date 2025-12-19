@@ -2,6 +2,19 @@
 {% load static %}
 {% block login %}
   <div class="col-12 col-lg-4 p-4 h-100 mx-auto">
+    <div>
+      {% if messages %}
+        <ul>
+          {% for message in messages %}
+            {% if "registration" in message.tags %}
+            <div class="alert alert-info">
+              {{ message }}
+            </div>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
     <form method="post" action="{% url "login" %}">
       {% csrf_token %}
       <img class="mb-4"

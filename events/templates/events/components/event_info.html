@@ -1,0 +1,30 @@
+<div class="card-body">
+  <h5 class="fw-semibold mb-3">Event details</h5>
+
+  {% if event.start_date %}
+    <p><strong>Start:</strong> {{ event.start_date }}</p>
+  {% endif %}
+  {% if event.end_date %}
+    <p><strong>End:</strong> {{ event.end_date }}</p>
+  {% endif %}
+
+  <p><strong>Type:</strong> {{ event.type }}</p>
+  <p><strong>Status:</strong> {{ event.status }}</p>
+  <p><strong>Planned amount:</strong> {{ event.planned_amount }}
+  </p>
+  <hr>
+  <h5 class="fw-semibold mb-3">Budget overview</h5>
+
+  {% if event.type == "Savings" %}
+    <p>Total income: {{ current_budget.total_income }}</p>
+  {% endif %}
+  {% if current_budget.total_expenses %}
+    <p>Total expenses: {{ current_budget.total_expenses }}</p>
+  {% endif %}
+
+  <p>
+    Current / Planned:
+    {{ current_budget.current_amount }} /
+    {{ current_budget.planned_amount }}
+  </p>
+</div>

@@ -96,7 +96,7 @@ class UserUpdateForm(forms.ModelForm):
 
 
 class UserKeyConnectForm(forms.Form):
-    key = forms.CharField(
+    unik_key = forms.CharField(
         max_length=255,
         label="Unique key"
     )

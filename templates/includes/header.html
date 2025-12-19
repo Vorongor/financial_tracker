@@ -16,7 +16,7 @@
           <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
             <li><a href="{% url "dashboard:personal-dash" %}" class="nav-link px-2 fs-2 text-white">Home</a></li>
             <li><a href="{% url "profile-page" pk=user.id %}" class="nav-link px-2 fs-2 text-white">Profile</a></li>
-            <li><a href="{% url "groups-home" %}" class="nav-link px-2 fs-2 text-white">Groups</a>
+            <li><a href="{% url "groups:home" %}" class="nav-link px-2 fs-2 text-white">Groups</a>
             </li>
             <li><a href="{% url "events:event-hero" %}" class="nav-link px-2 fs-2 text-white">Events</a></li>
             <li><a href="{% url "community-list" %}" class="nav-link px-2 fs-2 text-white">Community</a></li>

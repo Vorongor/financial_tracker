@@ -1,5 +1,8 @@
+from django.core.exceptions import ValidationError
+
 from addition_info.choise_models import Role, Status
-from events.models import EventMembership
+from config import settings
+from events.models import EventMembership, Event
 
 
 def create_event_invitation(
@@ -55,12 +58,13 @@ def reject_event_invitation(
         user_id=user_id
     )
     if not invitation:
+        # place for future Exception
         return
 
     invitation.delete()
 
 
-def update_event_invitation(
+def promote_member(
         event_id: int,
         user_id: int
 ) -> None:
@@ -68,8 +72,25 @@ def update_event_invitation(
         event_id=event_id,
         user_id=user_id
     )
-    if not invitation:
-        return
+
+        # place for future Exception/PermissionDenied
 
     invitation.role = Role.ADMIN
     invitation.save()
+
+
+def leave_event(
+        event: Event,
+        user: settings.AUTH_USER_MODEL
+) -> None:
+    membership = EventMembership.objects.get(event=event, user=user)
+
+    if membership.role == Role.CREATOR:
+        # will be replaced by future Exception/PermissionDenied
+        raise ValidationError("Creator cannot leave")
+
+    membership.delete()
+
+    if not EventMembership.objects.filter(
+            event=event).exists() and not event.creator:
+        event.delete()

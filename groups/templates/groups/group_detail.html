@@ -10,65 +10,59 @@
 
           <!-- Group header -->
           <div class="card bg-dark text-white shadow-sm mb-4">
-            <div class="card-body">
-              <h2 class="fw-bold mb-2">{{ group.name }}</h2>
-              <p class="text-secondary">{{ group.description }}</p>
-
-              <div class="d-flex flex-wrap gap-2 mt-3">
-                <a class="btn btn-outline-info"
-                   href="{% url "transfer-create" "group" group.id %}?next={{ request.path }}">
-                  Add transaction
-                </a>
-
-                <button class="btn btn-outline-success"
-                        data-bs-toggle="modal"
-                        data-bs-target="#inviteMemberModal">
-                  Add member
-                </button>
-
-                <a class="btn btn-outline-danger ms-auto"
-                   href="{% url "group-delete" pk=group.id %}">
-                  Delete group
-                </a>
-              </div>
-            </div>
+            {% include "groups/components/detail_top.html" %}
           </div>
 
           <!-- Group details -->
           <div class="card bg-dark text-white shadow-sm mb-4">
+            {% include "groups/components/detail_info.html" %}
+          </div>
+
+          <!-- Event Creation -->
+          <div class="card bg-dark text-white shadow-sm mb-4">
             <div class="card-body">
-              <h5 class="fw-semibold mb-3">Group details</h5>
 
-              {% if group.start_date %}
-                <p><strong>Start:</strong> {{ group.start_date }}</p>
+              <form method="post"
+                    action="{% url "groups:create-inside-event" group_id=group.id %}">
+                {% csrf_token %}
+                <input type="submit" class="btn btn-primary"
+                       value="Create Event">
+              </form>
+              {% if related_events %}
+                <h3>Relate events</h3>
+                <ul>
+                  {% for event in related_events %}
+                    <li>
+                      <a href="{% url "events:event-detail" pk=event.event.id %}">
+                      {{ event.get_related_events }}
+                      </a>
+                    </li>
+                  {% endfor %}
+                </ul>
               {% endif %}
-              {% if group.end_date %}
-                <p><strong>End:</strong> {{ group.end_date }}</p>
-              {% endif %}
-
-              <p><strong>State:</strong> {{ group.state }}</p>
             </div>
           </div>
 
-          <!-- Budget -->
-          {% if current_budget %}
-            <div class="card bg-dark text-white shadow-sm mb-4">
-              <div class="card-body">
-                <h5 class="fw-semibold mb-3">Budget overview</h5>
+          <!--Charts -->
+          <div class="card bg-dark text-white shadow-sm mb-4">
+            <div class="card-body">
+              <h5 class="text-secondary mb-2">
+                Statistics (coming soon)
+              </h5>
 
-                <p>Current amount: {{ current_budget.current_amount }}</p>
-
-                {% if current_budget.total_income %}
-                  <p>Total income: {{ current_budget.total_income }}</p>
-                {% endif %}
-
-                {% if current_budget.total_expenses %}
-                  <p>Total expenses: {{ current_budget.total_expenses }}</p>
-                {% endif %}
+              <div class="text-white-50 small">
+                Charts for income / expenses / trends will be displayed here.
               </div>
-            </div>
-          {% endif %}
 
+              <div class="d-flex justify-content-center align-items-center"
+                   style="height: 160px;">
+                <span class="text-secondary fst-italic">
+                  Graph placeholder
+                </span>
+              </div>
+
+            </div>
+          </div>
         </div>
 
         <!-- RIGHT SIDE (3) -->
@@ -76,81 +70,25 @@
 
           <!-- Transactions -->
           <div class="card bg-dark text-white shadow-sm mb-4">
-            <div class="card-body">
-              <h5 class="fw-semibold mb-3">Transaction history</h5>
-
-              {% if transaction_history %}
-                <ul class="list-group list-group-flush">
-                  {% for transaction in transaction_history %}
-                    <li class="list-group-item bg-dark text-white border-secondary">
-                      {{ transaction.get_short_description }}
-                    </li>
-                  {% endfor %}
-                </ul>
-              {% else %}
-                <p class="text-secondary">No transactions yet</p>
-              {% endif %}
-            </div>
+            {% include "groups/components/group_transactions.html" %}
           </div>
 
           <!-- Members -->
           <div class="card bg-dark text-white shadow-sm mb-4">
-            <div class="card-body">
-              <h5 class="fw-semibold mb-3">Members</h5>
-
-              {% if members %}
-                <ul class="list-group list-group-flush">
-                  {% for member in members %}
-                    <li class="list-group-item bg-dark text-white border-secondary">
-                      <p>{{ member.user.username }}</p>
-                      <form method="post"
-                            action="{% url "group-reject-invite" pk=group.id user_id=member.user.id stay="inside"%}">
-                        {% csrf_token %}
-                        <button class="btn btn-outline-danger btn-sm">
-                          Delete
-                        </button>
-                      </form>
-                    </li>
-                  {% endfor %}
-                </ul>
-              {% else %}
-                <p class="text-secondary">No members</p>
-              {% endif %}
-            </div>
+            {% include "groups/components/group_members.html" %}
           </div>
 
           <!-- Connections -->
           <div class="card bg-dark text-white shadow-sm">
-            <div class="card-body">
-              <h5 class="fw-semibold mb-3">Available connections</h5>
-
-              {% if connects %}
-                <ul class="list-group list-group-flush">
-                  {% for connect in connects %}
-                    <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between align-items-center">
-                      {{ connect.username }}
-                      <form method="post"
-                            action="{% url "group-invite-member" pk=group.id user_id=connect.id %}">
-                        {% csrf_token %}
-                        <button class="btn btn-outline-info btn-sm">
-                          Invite
-                        </button>
-                      </form>
-                    </li>
-                  {% endfor %}
-                </ul>
-              {% else %}
-                <p class="text-secondary">No available users</p>
-              {% endif %}
-            </div>
+            {% include "groups/components/group_connections.html" %}
           </div>
-
         </div>
 
       </div>
     </div>
 
-    {% include "modals/invite_member_modal.html" %}
+    {% include "modals/user_key_modal.html" %}
+    {% include "modals/transaction_modal.html" %}
 
   {% else %}
     <h3>Oh, well</h3>

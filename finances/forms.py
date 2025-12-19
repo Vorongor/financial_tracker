@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django import forms
+from django.forms import ModelForm
 
 from finances.models import Budget, Transaction
 
@@ -16,17 +17,53 @@ class UpdateBudgetForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(UpdateBudgetForm, self).clean()
+        return cleaned_data
+
 
 class TransferCreateForm(forms.ModelForm):
+    date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(
+            attrs={
+                "type": "date",
+                "class": "form-control",
+            }
+        )
+    )
+
     class Meta:
         model = Transaction
         fields = [
             "amount",
             "type",
-            "date",
             "category",
             "note",
         ]
+        widgets = {
+            "amount": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "min": 0,
+                    "step": "0.01"
+                }),
+            "type": forms.Select(
+                attrs={
+                    "class": "form-select",
+                }
+            ),
+            "category": forms.Select(
+                attrs={
+                    "class": "form-select",
+                }
+            ),
+            "note": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 2,
+                    "placeholder": "Enter your note here"
+                }
+            )
+        }
 
 
 class TopUpBudgetForm(forms.Form):
@@ -40,3 +77,11 @@ class TopUpBudgetForm(forms.Form):
         required=False,
         widget=forms.Textarea(attrs={"rows": 2})
     )
+
+class BudgetEditForm(ModelForm):
+    class Meta:
+        model = Budget
+        fields = (
+            "planned_amount",
+            "start_amount",
+        )

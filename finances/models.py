@@ -50,7 +50,7 @@ class Budget(models.Model):
     timestamp_update = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "budget_table"
+        db_table = "budgets"
         constraints = [
             models.UniqueConstraint(
                 fields=["content_type", "object_id"],
@@ -132,7 +132,7 @@ class Category(models.Model):
     order_index = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
-        db_table = "category_table"
+        db_table = "categories"
         verbose_name_plural = "Categories"
         ordering = ("order_index", "name")
 
@@ -180,7 +180,7 @@ class Transaction(models.Model):
     note = models.TextField(blank=True)
 
     class Meta:
-        db_table = "transaction_table"
+        db_table = "transactions"
         ordering = ("-date", "-timestamp_create")
 
     def __str__(self):

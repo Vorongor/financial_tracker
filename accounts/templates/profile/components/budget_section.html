@@ -1,0 +1,6 @@
+<h3>Budget info..</h3>
+{% if current_budget %}
+  <p>Current amount stayed: {{ current_budget.current_amount }}</p>
+  <p>Total income: {{ current_budget.total_income }}</p>
+  <p>Total expenses:{{ current_budget.total_expenses }}</p>
+{% endif %}

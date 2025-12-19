@@ -6,6 +6,17 @@
 
     <h3>{{ user.username }}</h3>
     <p>Uniq number: {{ user.get_user_uniq_key }}</p>
+    {% if messages %}
+      <ul>
+        {% for message in messages %}
+          {% if "community" in message.tags %}
+            <div class="alert alert-warning">
+              {{ message }}
+            </div>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    {% endif %}
     <button
         class="btn btn-outline-primary d-inline-flex align-items-center gap-2"
         data-bs-toggle="modal"

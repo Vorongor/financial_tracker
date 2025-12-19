@@ -1,0 +1,26 @@
+<div class="card-body">
+  <h5 class="fw-semibold mb-3">Available friends</h5>
+
+  {% if connects %}
+    <ul class="list-group list-group-flush">
+      {% for user in connects %}
+        <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between align-items-center">
+          <p>{{ user.username }}</p>
+          {% if user_role in "Admin,Creator" %}
+            <form method="post"
+                  action="{% url "events:event-add-members" pk=event.id user_id=user.id %}">
+              {% csrf_token %}
+              <button class="btn btn-outline-info">
+                Invite
+              </button>
+            </form>
+          {% else %}
+            <p class="text-secondary">no permission</p>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-secondary">No available users</p>
+  {% endif %}
+</div>

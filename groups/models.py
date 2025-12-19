@@ -32,6 +32,9 @@ class Group(models.Model):
     timestamp_updated = models.DateTimeField(auto_now=True)
     budgets = GenericRelation(Budget)
 
+    class Meta:
+        db_table = "a_groups"
+
     def __str__(self):
         return f"{self.name} ({self.state})"
 
@@ -92,12 +95,12 @@ class GroupEventConnection(models.Model):
     group = models.ForeignKey(
         Group,
         on_delete=models.CASCADE,
-        related_name="event_links",
+        related_name="event_link",
     )
     event = models.ForeignKey(
         Event,
         on_delete=models.CASCADE,
-        related_name="group_links",
+        related_name="group_link",
     )
     join_date = models.DateField(auto_now_add=True)
 
@@ -109,3 +112,7 @@ class GroupEventConnection(models.Model):
                 name="unique_group_event",
             )
         ]
+
+    def get_related_events(self):
+        return (f"{self.event.name} ({self.event.type} "
+                f"- {self.event.status}) - {self.join_date}")

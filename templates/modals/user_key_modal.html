@@ -2,7 +2,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
 
-      <form method="post" action="{% url 'budget-top-up' %}"
+      <form method="post" action="{% url 'user-invite-uk' invite_type=content_type sender_id=object_id %}"
             class="bg-dark text-white">
         {% csrf_token %}
 
@@ -12,8 +12,8 @@
                   data-bs-dismiss="modal"></button>
         </div>
 
-        <div class="modal-body d-flex flex-column align-items-center
-justify-content-center g-5">
+        <div
+            class="modal-body d-flex flex-column align-items-center justify-content-center ">
           <div class="form-floating text-secondary mb-4">
             <input type="text"
                    name="unik_key"
@@ -21,18 +21,18 @@ justify-content-center g-5">
                    id="keyInput"
                    value="{{ form.key.value|default:'' }}"
                    required>
-            <label for="amountInput">Uniq user key</label>
+            <label for="keyInput">Uniq user key</label>
             {% for error in form.key.errors %}
               <div class="invalid-feedback d-block">{{ error }}</div>
             {% endfor %}
           </div>
 
-          <div class="modal-footer">
+          <div class="modal-footer w-100">
             <button type="submit" class="btn btn-outline-success">
               Submit
             </button>
           </div>
-
+        </div>
       </form>
 
     </div>
