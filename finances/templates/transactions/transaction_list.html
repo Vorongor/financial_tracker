@@ -3,8 +3,8 @@
 {% block content %}
   <h2>list of transactions</h2>
   <ul>
-    {% for transaction in transactions %}
-      <li>{{ transaction }}</li>
+    {% for transaction in transaction_list %}
+      <li>{{ transaction.get_full_description }}</li>
     {% endfor %}
   </ul>
 {% endblock %}

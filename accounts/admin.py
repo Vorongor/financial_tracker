@@ -11,14 +11,10 @@ class UserAdmin(UserAdmin):
         "salary",
         "default_currency",
         "is_superuser",
-        "is_active"
+        "is_active",
     )
     fieldsets = UserAdmin.fieldsets + (
-        ("Additional info", {"fields": (
-            "job",
-            "salary",
-            "default_currency"
-        )}),
+        ("Additional info", {"fields": ("job", "salary", "default_currency")}),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
         (
@@ -30,7 +26,7 @@ class UserAdmin(UserAdmin):
                     "email",
                     "job",
                     "salary",
-                    "default_currency"
+                    "default_currency",
                 )
             },
         ),

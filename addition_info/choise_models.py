@@ -9,6 +9,6 @@ class Status(models.TextChoices):
 
 class Role(models.TextChoices):
     ADMIN = "Admin"
-    MODERATOR =  "Moderator"
+    MODERATOR = "Moderator"
     MEMBER = "Member"
     CREATOR = "Creator"

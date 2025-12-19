@@ -11,20 +11,20 @@ from finances.models import Budget
 
 class Event(models.Model):
     class EventType(models.TextChoices):
-        SAVINGS = 'Savings'
-        EXPENSES = 'Expenses'
-        ACCUMULATIVE = 'Accumulative'
+        SAVINGS = "Savings"
+        EXPENSES = "Expenses"
+        ACCUMULATIVE = "Accumulative"
 
     class EventStatus(models.TextChoices):
-        PLANNED = 'Planned'
-        COMPLETED = 'Completed'
-        ONGOING = 'Ongoing'
-        CANCELLED = 'Cancelled'
+        PLANNED = "Planned"
+        COMPLETED = "Completed"
+        ONGOING = "Ongoing"
+        CANCELLED = "Cancelled"
 
     class Accessibility(models.TextChoices):
-        PRIVATE = 'Private'
-        PUBLIC = 'Public'
-        GROUP = 'Group'
+        PRIVATE = "Private"
+        PUBLIC = "Public"
+        GROUP = "Group"
 
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
@@ -41,9 +41,7 @@ class Event(models.Model):
         default=EventType.SAVINGS,
     )
     status = models.CharField(
-        max_length=20,
-        choices=EventStatus.choices,
-        default=EventStatus.PLANNED
+        max_length=20, choices=EventStatus.choices, default=EventStatus.PLANNED
     )
     accessibility = models.CharField(
         max_length=20,
@@ -57,10 +55,7 @@ class Event(models.Model):
         on_delete=models.SET_NULL,
         null=True,
     )
-    budgets = GenericRelation(
-        Budget,
-        related_query_name="event_budget"
-    )
+    budgets = GenericRelation(Budget, related_query_name="event_budget")
 
     class Meta:
         db_table = "events"
@@ -69,12 +64,17 @@ class Event(models.Model):
         return f"Event: {self.name} - {self.status}"
 
     def clean(self):
-        if self.start_date and self.end_date and self.end_date < self.start_date:
+        if (
+                self.start_date
+                and self.end_date
+                and self.end_date < self.start_date
+        ):
             raise ValidationError(
                 {"end_date": "end_date must be >= start_date."})
         if self.planned_amount < 0:
             raise ValidationError(
-                {"planned_budget": "planned_budget must be non-negative."})
+                {"planned_budget": "planned_budget must be non-negative."}
+            )
 
     @property
     def budget(self):
@@ -83,7 +83,8 @@ class Event(models.Model):
         Expects at most one Budget due to unique constraint in Budget.meta.
         """
         ct = ContentType.objects.get_for_model(self)
-        return Budget.objects.filter(content_type=ct, object_id=self.id).first()
+        return Budget.objects.filter(content_type=ct,
+                                     object_id=self.id).first()
 
 
 class EventMembership(models.Model):
@@ -112,8 +113,6 @@ class EventMembership(models.Model):
     class Meta:
         db_table = "events_membership"
         constraints = [
-            models.UniqueConstraint(
-                fields=["event", "user"],
-                name="unique_event_user"
-            )
+            models.UniqueConstraint(fields=["event", "user"],
+                                    name="unique_event_user")
         ]

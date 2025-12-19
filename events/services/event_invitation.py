@@ -5,17 +5,14 @@ from config import settings
 from events.models import EventMembership, Event
 
 
-def create_event_invitation(
-        list_of_connects: list[int],
-        event_id: int
-) -> None:
+def create_event_invitation(list_of_connects: list[int],
+                            event_id: int) -> None:
     if not list_of_connects:
         return
 
     existing = set(
         EventMembership.objects.filter(
-            event_id=event_id,
-            user_id__in=list_of_connects
+            event_id=event_id, user_id__in=list_of_connects
         ).values_list("user_id", flat=True)
     )
 
@@ -34,10 +31,7 @@ def create_event_invitation(
         )
 
 
-def accept_event_invitation(
-        event_id: int,
-        user_id: int
-) -> None:
+def accept_event_invitation(event_id: int, user_id: int) -> None:
     invitation = EventMembership.objects.get(
         event_id=event_id,
         user_id=user_id
@@ -49,10 +43,7 @@ def accept_event_invitation(
     invitation.save()
 
 
-def reject_event_invitation(
-        event_id: int,
-        user_id: int
-) -> None:
+def reject_event_invitation(event_id: int, user_id: int) -> None:
     invitation = EventMembership.objects.get(
         event_id=event_id,
         user_id=user_id
@@ -64,25 +55,17 @@ def reject_event_invitation(
     invitation.delete()
 
 
-def promote_member(
-        event_id: int,
-        user_id: int
-) -> None:
-    invitation = EventMembership.objects.get(
-        event_id=event_id,
-        user_id=user_id
-    )
+def promote_member(event_id: int, user_id: int) -> None:
+    invitation = EventMembership.objects.get(event_id=event_id,
+                                             user_id=user_id)
 
-        # place for future Exception/PermissionDenied
+    # place for future Exception/PermissionDenied
 
     invitation.role = Role.ADMIN
     invitation.save()
 
 
-def leave_event(
-        event: Event,
-        user: settings.AUTH_USER_MODEL
-) -> None:
+def leave_event(event: Event, user: settings.AUTH_USER_MODEL) -> None:
     membership = EventMembership.objects.get(event=event, user=user)
 
     if membership.role == Role.CREATOR:

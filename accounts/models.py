@@ -15,7 +15,7 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=255)
     job = models.CharField(max_length=255, blank=True)
     salary = models.PositiveIntegerField(default=0)
-    default_currency = models.CharField(max_length=255, default='UAH')
+    default_currency = models.CharField(max_length=255, default="UAH")
     connect_key = models.UUIDField(
         default=uuid.uuid4,
         unique=True,
@@ -45,8 +45,10 @@ class User(AbstractUser):
         Expects at most one Budget due to unique constraint in Budget.meta.
         """
         ct = ContentType.objects.get_for_model(self)
-        return Budget.objects.filter(content_type=ct,
-                                     object_id=self.id).first()
+        return Budget.objects.filter(
+            content_type=ct,
+            object_id=self.id
+        ).first()
 
     def get_user_uniq_key(self):
         return str(self.connect_key)
@@ -61,25 +63,22 @@ class UserConnection(models.Model):
     from_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="sent_connections"
+        related_name="sent_connections",
     )
     to_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="received_connections"
+        related_name="received_connections",
     )
     status = models.CharField(
-        max_length=20,
-        choices=Status.choices,
-        default=Status.PENDING
+        max_length=20, choices=Status.choices, default=Status.PENDING
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["from_user", "to_user"],
-                name="unique_connection"
+                fields=["from_user", "to_user"], name="unique_connection"
             )
         ]
 

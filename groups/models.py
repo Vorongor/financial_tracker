@@ -41,8 +41,7 @@ class Group(models.Model):
     def clean(self):
         if self.state == self.States.PERMANENT:
             if self.start_date or self.end_date:
-                raise ValidationError(
-                    "Permanent groups must not have start/end dates.")
+                raise ValidationError("Permanent groups must not have start/end dates.")
         else:
             if self.start_date and self.end_date and self.end_date < self.start_date:
                 raise ValidationError("end_date must be >= start_date.")
@@ -54,8 +53,7 @@ class Group(models.Model):
         Expects at most one Budget due to unique constraint in Budget.meta.
         """
         ct = ContentType.objects.get_for_model(self)
-        return Budget.objects.filter(content_type=ct,
-                                     object_id=self.id).first()
+        return Budget.objects.filter(content_type=ct, object_id=self.id).first()
 
 
 class GroupMembership(models.Model):
@@ -114,5 +112,7 @@ class GroupEventConnection(models.Model):
         ]
 
     def get_related_events(self):
-        return (f"{self.event.name} ({self.event.type} "
-                f"- {self.event.status}) - {self.join_date}")
+        return (
+            f"{self.event.name} ({self.event.type} "
+            f"- {self.event.status}) - {self.join_date}"
+        )

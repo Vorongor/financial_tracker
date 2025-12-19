@@ -8,8 +8,7 @@ from .models import Event
 
 class EventPrivateCreateForm(forms.ModelForm):
     participants = forms.MultipleChoiceField(
-        required=False,
-        widget=forms.CheckboxSelectMultiple
+        required=False, widget=forms.CheckboxSelectMultiple
     )
 
     class Meta:
@@ -26,37 +25,30 @@ class EventPrivateCreateForm(forms.ModelForm):
         ]
 
         widgets = {
-            "name": forms.TextInput(attrs={
-                "class": "form-control",
-                "placeholder": "Event name"
-            }),
-            "description": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 4,
-                "placeholder": "Optional description"
-            }),
-            "start_date": forms.DateInput(attrs={
-                "class": "form-control",
-                "type": "date"
-            }),
-            "end_date": forms.DateInput(attrs={
-                "class": "form-control",
-                "type": "date"
-            }),
-            "planned_amount": forms.NumberInput(attrs={
-                "class": "form-control",
-                "min": 0,
-                "step": "0.01"
-            }),
-            "type": forms.Select(attrs={
-                "class": "form-select"
-            }),
-            "status": forms.Select(attrs={
-                "class": "form-select"
-            }),
+            "name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Event name"}
+            ),
+            "description": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 4,
+                    "placeholder": "Optional description",
+                }
+            ),
+            "start_date": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}
+            ),
+            "end_date": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}
+            ),
+            "planned_amount": forms.NumberInput(
+                attrs={"class": "form-control", "min": 0, "step": "0.01"}
+            ),
+            "type": forms.Select(attrs={"class": "form-select"}),
+            "status": forms.Select(attrs={"class": "form-select"}),
             "accessibility": forms.Select(
                 attrs={"class": "form-select"},
-            )
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -67,8 +59,9 @@ class EventPrivateCreateForm(forms.ModelForm):
         connections = get_user_connections(user.id, "accepted")
 
         self.fields["participants"].choices = [
-            (c.other_user(user).id, c.other_user(user).username)
-            for c in connections
+            (
+                c.other_user(user).id,
+                c.other_user(user).username) for c in connections
         ]
 
     def clean(self):

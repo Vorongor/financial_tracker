@@ -22,7 +22,7 @@ def create_budget_for_user(sender, instance, created, **kwargs):
             object_id=instance.id,
             defaults={
                 "planned_amount": Decimal("0.00"),
-            }
+            },
         )
 
 
@@ -36,7 +36,7 @@ def create_budget_for_group(sender, instance, created, **kwargs):
             object_id=instance.id,
             defaults={
                 "planned_amount": Decimal("0.00"),
-            }
+            },
         )
 
 
@@ -50,5 +50,5 @@ def create_budget_for_event(sender, instance, created, **kwargs):
             object_id=instance.id,
             defaults={
                 "planned_amount": instance.planned_amount,
-            }
+            },
         )

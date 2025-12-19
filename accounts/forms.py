@@ -21,51 +21,52 @@ class UserRegisterForm(UserCreationForm):
         ]
 
     username = forms.CharField(
-        max_length=255,
-        widget=forms.TextInput(attrs={"placeholder": "Username"})
+        max_length=255, widget=forms.TextInput(
+            attrs={"placeholder": "Username"})
     )
 
     email = forms.EmailField(
-        max_length=255,
-        widget=forms.EmailInput(attrs={"placeholder": "Email"})
+        max_length=255, widget=forms.EmailInput(
+            attrs={"placeholder": "Email"})
     )
 
     first_name = forms.CharField(
-        max_length=255,
-        widget=forms.TextInput(attrs={"placeholder": "First name"})
+        max_length=255, widget=forms.TextInput(
+            attrs={"placeholder": "First name"})
     )
 
     last_name = forms.CharField(
-        max_length=255,
-        widget=forms.TextInput(attrs={"placeholder": "Last name"})
+        max_length=255, widget=forms.TextInput(
+            attrs={"placeholder": "Last name"})
     )
 
     job = forms.CharField(
         max_length=255,
         required=False,
-        widget=forms.TextInput(attrs={"placeholder": "Job"})
+        widget=forms.TextInput(attrs={"placeholder": "Job"}),
     )
 
     salary = forms.IntegerField(
         min_value=0,
         required=False,
-        widget=forms.NumberInput(attrs={"placeholder": "Salary"})
+        widget=forms.NumberInput(attrs={"placeholder": "Salary"}),
     )
 
     default_currency = forms.CharField(
         max_length=10,
         required=False,
-        widget=forms.TextInput(attrs={"placeholder": "Currency (UAH, USD, EUR...)"})
+        widget=forms.TextInput(
+            attrs={"placeholder": "Currency (UAH, USD, EUR...)"}),
     )
 
     password1 = forms.CharField(
-        label="Password",
-        widget=forms.PasswordInput(attrs={"placeholder": "Password"})
+        label="Password", widget=forms.PasswordInput(
+            attrs={"placeholder": "Password"})
     )
 
     password2 = forms.CharField(
         label="Confirm password",
-        widget=forms.PasswordInput(attrs={"placeholder": "Repeat password"})
+        widget=forms.PasswordInput(attrs={"placeholder": "Repeat password"}),
     )
 
     def clean_email(self):
@@ -96,7 +97,4 @@ class UserUpdateForm(forms.ModelForm):
 
 
 class UserKeyConnectForm(forms.Form):
-    unik_key = forms.CharField(
-        max_length=255,
-        label="Unique key"
-    )
+    unik_key = forms.CharField(max_length=255, label="Unique key")

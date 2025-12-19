@@ -19,7 +19,7 @@ from events.services.event_invitation import (
     reject_event_invitation,
     accept_event_invitation,
     promote_member,
-    leave_event
+    leave_event,
 )
 from finances.forms import TransferCreateForm, BudgetEditForm
 from finances.models import Budget
@@ -87,8 +87,7 @@ class EventCreateView(LoginRequiredMixin, CreateView):
             map(int, form.cleaned_data.get("participants", []))
         )
         create_event_invitation(
-            list_of_connects=participants_ids,
-            event_id=self.object.id
+            list_of_connects=participants_ids, event_id=self.object.id
         )
 
         return redirect(self.get_success_url())
@@ -102,22 +101,19 @@ class EventDetailView(LoginRequiredMixin, DetailView):
         event = self.get_object()
         user = self.request.user
         members = EventMembership.objects.filter(event_id=self.object.id)
+        user_role = members.filter(user=user).first().role
+
         users = [
             connect.other_user(user)
-            for connect in get_user_connections(
-                user.id,
-                "accepted"
-            )
-            if connect.other_user(user).id not in members.values_list(
-                "user__id",
-                flat=True
-            )
+            for connect in get_user_connections(user.id, "accepted")
+            if connect.other_user(user).id
+            not in members.values_list("user__id", flat=True)
         ]
-        user_role = members.filter(user=user).first().role
+
         context["can_delete_event"] = (
-                (event.creator and event.creator == user)
-                or
-                (not event.creator and user_role == "Admin")
+            event.creator and event.creator == user
+                                      ) or (
+            not event.creator and user_role == "Admin"
         )
         context["transaction_history"] = self.object.budget.transactions.all()
         context["current_budget"] = self.object.budget.get_budget_data()
@@ -144,10 +140,7 @@ class EventDeleteView(LoginRequiredMixin, DeleteView):
         self.object = self.get_object()
 
         ct = ContentType.objects.get_for_model(self.object)
-        Budget.objects.get(
-            owner_type=ct,
-            owner_id=self.object.id
-        ).delete()
+        Budget.objects.get(owner_type=ct, owner_id=self.object.id).delete()
 
         return super().delete(request, *args, **kwargs)
 
@@ -166,7 +159,7 @@ class EventUpdateView(LoginRequiredMixin, View):
                 "event_form": EventEditForm(instance=event),
                 "budget_form": BudgetEditForm(instance=budget),
                 "event": event,
-            }
+            },
         )
 
     @transaction.atomic
@@ -183,11 +176,15 @@ class EventUpdateView(LoginRequiredMixin, View):
             budget.recalc()
             return redirect("events:event-detail", pk=pk)
 
-        return render(request, self.template_name, {
-            "event_form": event_form,
-            "budget_form": budget_form,
-            "event": event,
-        })
+        return render(
+            request,
+            self.template_name,
+            {
+                "event_form": event_form,
+                "budget_form": budget_form,
+                "event": event,
+            },
+        )
 
 
 class EventAddMembersView(LoginRequiredMixin, View):

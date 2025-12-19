@@ -1,0 +1,51 @@
+<h3>List of invites</h3>
+<table class="table">
+  <thead>
+  <tr class="bg-dark">
+    <th class="bg-secondary bg-gradient">Username</th>
+    <th class="bg-secondary bg-gradient">First Name</th>
+    <th class="bg-secondary bg-gradient">Last Name</th>
+    <th class="bg-secondary bg-gradient">Approve</th>
+    <th class="bg-secondary bg-gradient">Reject</th>
+    <th class="bg-secondary bg-gradient">Block</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for invite in invite_to_connect %}
+
+    <tr>
+      <td>{{ invite.from_user.username }}</td>
+      <td>{{ invite.from_user.first_name }}</td>
+      <td>{{ invite.from_user.last_name }}</td>
+      <td>
+        <form method="post"
+              action="{% url 'approve-connect' invite.id %}">
+          {% csrf_token %}
+          <button class="btn btn-outline-success">
+            Approve
+          </button>
+        </form>
+      </td>
+      <td>
+        <form method="post"
+              action="{% url 'reject-connect' invite.id %}">
+          {% csrf_token %}
+          <button class="btn btn-outline-danger">
+            Reject
+          </button>
+        </form>
+      </td>
+      <td>
+        <form method="post"
+              action="{% url 'block-connect' invite.id %}">
+          {% csrf_token %}
+          <button class="btn btn-outline-danger">
+            Block
+          </button>
+        </form>
+      </td>
+    </tr>
+
+  {% endfor %}
+  </tbody>
+</table>

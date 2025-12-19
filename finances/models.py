@@ -11,8 +11,8 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 
 class Budget(models.Model):
     """
-        Universal budget that can belong to any model via GenericForeignKey.
-        Enforce uniqueness on (content_type, object_id) so one budget per owner.
+    Universal budget that can belong to any model via GenericForeignKey.
+    Enforce uniqueness on (content_type, object_id) so one budget per owner.
     """
 
     # GFK
@@ -20,31 +20,11 @@ class Budget(models.Model):
     object_id = models.PositiveIntegerField()
     owner = GenericForeignKey("content_type", "object_id")
 
-    total_income = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0
-    )
-    total_expenses = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0
-    )
-    current_amount = models.DecimalField(
-        default=0,
-        max_digits=10,
-        decimal_places=2
-    )
-    start_amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0
-    )
-    planned_amount = (models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0)
-    )
+    total_income = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_expenses = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    current_amount = models.DecimalField(default=0, max_digits=10, decimal_places=2)
+    start_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    planned_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     timestamp_create = models.DateTimeField(auto_now_add=True)
     timestamp_update = models.DateTimeField(auto_now=True)
@@ -53,8 +33,7 @@ class Budget(models.Model):
         db_table = "budgets"
         constraints = [
             models.UniqueConstraint(
-                fields=["content_type", "object_id"],
-                name="unique_budget_per_owner"
+                fields=["content_type", "object_id"], name="unique_budget_per_owner"
             )
         ]
         ordering = ("-timestamp_update",)
@@ -77,10 +56,10 @@ class Budget(models.Model):
     def clean(self):
         """Ensure non-negative monetary fields"""
         for field in (
-                "total_income",
-                "total_expenses",
-                "start_amount",
-                "planned_amount"
+            "total_income",
+            "total_expenses",
+            "start_amount",
+            "planned_amount",
         ):
             val = getattr(self, field)
             if val is None or val < 0:
@@ -93,31 +72,30 @@ class Budget(models.Model):
         Assumes Transaction.target -> this Budget (related_name='transactions').
         """
 
-        incomes = self.transactions.filter(
-            type=Transaction.Types.INCOME
-        ).aggregate(
+        incomes = self.transactions.filter(type=Transaction.Types.INCOME).aggregate(
             total=models.Sum("amount")
         )["total"] or Decimal("0.00")
 
-        expenses = self.transactions.filter(
-            type=Transaction.Types.EXPENSE
-        ).aggregate(
+        expenses = self.transactions.filter(type=Transaction.Types.EXPENSE).aggregate(
             total=models.Sum("amount")
         )["total"] or Decimal("0.00")
 
         self.total_income = incomes
         self.total_expenses = expenses
-        self.current_amount = (self.start_amount
-                               or Decimal("0.00")) + incomes - expenses
+        self.current_amount = (
+            (self.start_amount or Decimal("0.00")) + incomes - expenses
+        )
 
         if save:
             self.full_clean()
-            self.save(update_fields=[
-                "total_income",
-                "total_expenses",
-                "current_amount",
-                "timestamp_update"
-            ])
+            self.save(
+                update_fields=[
+                    "total_income",
+                    "total_expenses",
+                    "current_amount",
+                    "timestamp_update",
+                ]
+            )
 
 
 class Category(models.Model):
@@ -142,16 +120,15 @@ class Category(models.Model):
 
 class Transaction(models.Model):
     """
-        Transaction belongs to a Budget (target). Payer is a User.
+    Transaction belongs to a Budget (target). Payer is a User.
     """
 
     class Types(models.TextChoices):
-        INCOME = 'Income'
-        EXPENSE = 'Expense'
+        INCOME = "Income"
+        EXPENSE = "Expense"
 
     amount = models.DecimalField(
-        max_digits=12, decimal_places=2,
-        validators=[MinValueValidator(Decimal("0.01"))]
+        max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))]
     )
     type = models.CharField(
         max_length=20,
@@ -161,21 +138,17 @@ class Transaction(models.Model):
     date = models.DateField(default=timezone.now)
     timestamp_create = models.DateTimeField(auto_now_add=True)
     target = models.ForeignKey(
-        Budget,
-        on_delete=models.CASCADE,
-        related_name="transactions"
+        Budget, on_delete=models.CASCADE, related_name="transactions"
     )
     payer = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="transactions"
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="transactions"
     )
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="transactions"
+        related_name="transactions",
     )
     note = models.TextField(blank=True)
 
@@ -189,21 +162,29 @@ class Transaction(models.Model):
     def get_short_description(self):
         return f"{self.amount} -> {self.type}, from {self.payer.username}"
 
+    def get_full_description(self):
+        return f"{self.amount} -> {self.type}, from {self.payer.username} to {self.target.get_owner()} at {self.date}"
+
     def clean(self):
         """
-            Ensure non-negative monetary fields
-            Check if transaction type conflicts with transaction type
+        Ensure non-negative monetary fields
+        Check if transaction type conflicts with transaction type
         """
         if self.category and self.type:
-            if (self.category.type == Category.Types.INCOME
-                    and self.type != self.Types.INCOME):
+            if (
+                self.category.type == Category.Types.INCOME
+                and self.type != self.Types.INCOME
+            ):
                 raise ValidationError(
-                    {
-                        "category": "Category type conflicts with transaction type."})
-            if (self.category.type == Category.Types.EXPENSE
-                    and self.type != self.Types.EXPENSE):
-                raise ValidationError({
-                    "category": "Category type conflicts with transaction type."})
+                    {"category": "Category type conflicts with transaction type."}
+                )
+            if (
+                self.category.type == Category.Types.EXPENSE
+                and self.type != self.Types.EXPENSE
+            ):
+                raise ValidationError(
+                    {"category": "Category type conflicts with transaction type."}
+                )
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -211,5 +192,5 @@ class Transaction(models.Model):
         # try:
         #     self.target.recalc()
         # except Exception:
-            # will be Exeption logging
-            # pass
+        # will be Exeption logging
+        # pass

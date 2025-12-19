@@ -1,22 +1,41 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import CreateView, DetailView, UpdateView, ListView
+from django.views.generic import (
+    CreateView,
+    DetailView,
+    UpdateView,
+    ListView,
+    DeleteView,
+)
 
-from accounts.forms import UserRegisterForm, UserUpdateForm, UserKeyConnectForm
+from accounts.forms import (
+    UserRegisterForm,
+    UserUpdateForm,
+    UserKeyConnectForm
+)
 from accounts.models import UserConnection
-from accounts.services.receive_connection import get_user_connections, \
-    get_user_from_uk
-from accounts.services.user_connection_control import invite_user_to_connect, \
-    approve_user_to_connect, reject_user_to_connect
+from accounts.services.receive_connection import (
+    get_user_connections,
+    get_user_from_uk,
+)
+from accounts.services.user_connection_control import (
+    invite_user_to_connect,
+    approve_user_to_connect,
+    reject_user_to_connect,
+    block_user_to_connect,
+    un_block_user_connect,
+)
 from events.models import Event
 from events.services.event_invitation import create_event_invitation
 from finances.forms import TopUpBudgetForm
+from finances.models import Budget
 from groups.models import Group
 from groups.services.group_invitation import create_group_invitation
 
@@ -76,10 +95,27 @@ class UpdateProfileView(LoginRequiredMixin, UpdateView):
     template_name = "profile/update_form.html"
 
     def get_success_url(self):
-        return reverse_lazy(
-            "profile-page",
-            kwargs={"pk": self.object.pk}
+        return reverse_lazy("profile-page", kwargs={"pk": self.object.pk})
+
+
+class DeleteProfileView(LoginRequiredMixin, DeleteView):
+    model = get_user_model()
+    template_name = "profile/user_confirm_delete.html"
+    success_url = reverse_lazy("login")
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+
+        ct = ContentType.objects.get_for_model(self.object)
+        Budget.objects.get(owner_type=ct, owner_id=self.object.id).delete()
+
+        messages.success(
+            request,
+            "Profile has been deleted. Please log in.",
+            extra_tags="registration",
         )
+
+        return super().delete(request, *args, **kwargs)
 
 
 class CommunityListView(LoginRequiredMixin, ListView):
@@ -89,32 +125,54 @@ class CommunityListView(LoginRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        querySet = get_user_model().objects.exclude(
-            pk=self.request.user.id
-        )
+        queryset = get_user_model().objects.exclude(pk=self.request.user.id)
 
-        fried_list = get_user_connections(self.request.user.id)
+        friend_list = get_user_connections(self.request.user.id)
 
-        fried_list = ([connect.from_user.id for connect in fried_list]
-                      + [connect.to_user.id for connect in fried_list])
+        friend_list = [connect.from_user.id for connect in friend_list] + [
+            connect.to_user.id for connect in friend_list
+        ]
 
-        querySet = querySet.exclude(pk__in=fried_list)
+        queryset = queryset.exclude(pk__in=friend_list)
 
         query = self.request.GET.get("q")
         if query:
-            querySet = querySet.filter(
-                Q(username__icontains=query) |
-                Q(email__icontains=query) |
-                Q(first_name__icontains=query) |
-                Q(last_name__icontains=query)
+            queryset = queryset.filter(
+                Q(username__icontains=query)
+                | Q(email__icontains=query)
+                | Q(first_name__icontains=query)
+                | Q(last_name__icontains=query)
             )
 
-        return querySet
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        friend_list = get_user_connections(self.request.user.id)
+        context["connections"] = [
+            connect
+            for connect in friend_list
+            if connect.status == UserConnection.Status.ACCEPTED
+        ]
+        context["invite_to_connect"] = [
+            connect
+            for connect in friend_list
+            if (connect.to_user == self.request.user
+                and connect.status == UserConnection.Status.PENDING)
+        ]
+        context["sends_to_connect"] = [
+            connect
+            for connect in friend_list
+            if (connect.from_user == self.request.user
+                and connect.status == UserConnection.Status.PENDING)
+        ]
+        context["black_list"] = [
+            connect
+            for connect in friend_list
+            if (connect.status == UserConnection.Status.BLOCKED
+                and connect.from_user != self.request.user)
+        ]
         context["uniq_key_form"] = UserKeyConnectForm()
-        context["connections"] = get_user_connections(self.request.user.id)
         context["content_type"] = "connection"
         context["object_id"] = self.request.user.id
 
@@ -128,30 +186,39 @@ class UserConnectView(LoginRequiredMixin, View):
         if recipient == request.user:
             return redirect("community-list")
 
-        invite_user_to_connect(
-            sender=request.user,
-            recipient=recipient
-        )
+        invite_user_to_connect(sender=request.user, recipient=recipient)
 
         return redirect(request.META.get("HTTP_REFERER", "community-list"))
 
 
 class UserConnectApproveView(LoginRequiredMixin, View):
     def post(self, request, connection_id):
-        approve_user_to_connect(
-            connection_id=connection_id
-        )
+        approve_user_to_connect(connection_id=connection_id)
 
         return redirect(request.META.get("HTTP_REFERER", "profile-dashboard"))
 
 
 class UserConnectRejectView(LoginRequiredMixin, View):
     def post(self, request, connection_id):
-        reject_user_to_connect(
-            connection_id=connection_id
-        )
+        reject_user_to_connect(connection_id=connection_id)
 
         return redirect(request.META.get("HTTP_REFERER", "profile-dashboard"))
+
+
+class UserConnectBlockView(LoginRequiredMixin, View):
+    def post(self, request, connection_id):
+        block_user_to_connect(connection_id=connection_id)
+
+        return redirect(request.META.get("HTTP_REFERER", "profile-dashboard"))
+
+
+class UserConnectUnblockView(LoginRequiredMixin, View):
+    def post(self, request, connection_id):
+        un_block_user_connect(connection_id=connection_id)
+
+        return redirect(
+            request.META.get("HTTP_REFERER", "profile-dashboard")
+        )
 
 
 class UserUkConnectView(LoginRequiredMixin, View):
@@ -162,7 +229,8 @@ class UserUkConnectView(LoginRequiredMixin, View):
             messages.error(
                 request,
                 "Invalid key format",
-                extra_tags="community")
+                extra_tags="community"
+            )
             return redirect(request.META.get("HTTP_REFERER"))
 
         unik_key = form.data.get("unik_key")
@@ -170,36 +238,29 @@ class UserUkConnectView(LoginRequiredMixin, View):
         try:
             recipient = get_user_from_uk(unik_key)
             if invite_type == "connection":
-                invite_user_to_connect(
-                    sender=request.user,
-                    recipient=recipient
-                )
+                invite_user_to_connect(sender=request.user,
+                                       recipient=recipient)
             elif invite_type == "event":
                 create_event_invitation(
-                    list_of_connects=[recipient.id, ],
-                    event_id=sender_id
+                    list_of_connects=[
+                        recipient.id,
+                    ],
+                    event_id=sender_id,
                 )
             elif invite_type == "group":
                 create_group_invitation(
-                    list_of_connects=[recipient.id, ],
-                    group_id=sender_id
+                    list_of_connects=[
+                        recipient.id,
+                    ],
+                    group_id=sender_id,
                 )
             messages.success(
-                request,
-                "Connection request sent successfully.",
+                request, "Connection request sent successfully.",
                 extra_tags="community"
             )
         except ValidationError as e:
-            messages.error(
-                request,
-                e.message,
-                extra_tags="community"
-            )
+            messages.error(request, e.message, extra_tags="community")
         except get_user_model().DoesNotExist:
-            messages.error(
-                request,
-                "User not found.",
-                extra_tags="community"
-            )
+            messages.error(request, "User not found.", extra_tags="community")
 
         return redirect(request.META.get("HTTP_REFERER", "profile-dashboard"))

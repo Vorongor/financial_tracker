@@ -5,20 +5,15 @@ from groups.models import GroupEventConnection, Group, GroupMembership
 
 def invite_group_members_to_event(group: Group, event: Event):
     members = GroupMembership.objects.filter(
-        group=group,
-        status=Status.ACCEPTED
+        group=group, status=Status.ACCEPTED
     ).exclude(user=event.creator)
 
     EventMembership.objects.bulk_create(
         [
-            EventMembership(
-                event=event,
-                user=membership.user,
-                status=Status.PENDING
-            )
+            EventMembership(event=event, user=membership.user, status=Status.PENDING)
             for membership in members
         ],
-        ignore_conflicts=True
+        ignore_conflicts=True,
     )
     membership, _ = EventMembership.objects.get_or_create(
         event=event,
@@ -30,10 +25,7 @@ def invite_group_members_to_event(group: Group, event: Event):
 
 
 def create_group_event(*, group, event):
-    GroupEventConnection.objects.create(
-        group=group,
-        event=event
-    )
+    GroupEventConnection.objects.create(group=group, event=event)
 
     invite_group_members_to_event(group, event)
 

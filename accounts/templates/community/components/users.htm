@@ -1,0 +1,28 @@
+<h3>List of other users</h3>
+<table class="table">
+  <thead>
+  <tr class="bg-dark">
+    <th class="bg-secondary bg-gradient">Username</th>
+    <th class="bg-secondary bg-gradient">First Name</th>
+    <th class="bg-secondary bg-gradient">Last Name</th>
+    <th class="bg-secondary bg-gradient">Connect</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for user in users %}
+    <tr>
+      <td>{{ user.username }}</td>
+      <td>{{ user.first_name }}</td>
+      <td>{{ user.last_name }}</td>
+      <td>
+        <form method="post" action="{% url 'user-connect' user.id %}">
+          {% csrf_token %}
+          <button class="btn btn-outline-success">
+            Connect
+          </button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>

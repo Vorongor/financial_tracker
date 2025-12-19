@@ -9,14 +9,19 @@ from django.views import View
 from django.views.generic import (
     TemplateView,
     UpdateView,
-    CreateView, ListView,
+    CreateView,
+    ListView,
 )
 
 from events.models import Event
 from finances.custom_mixins import SuccessUrlFromNextMixin
 from finances.models import Budget, Transaction
-from finances.forms import UpdateBudgetForm, TransferCreateForm, \
-    TopUpBudgetForm
+from finances.forms import UpdateBudgetForm, TransferCreateForm, TopUpBudgetForm
+from finances.services.history_service import (
+    get_user_transactions,
+    get_event_transactions,
+    get_group_transactions,
+)
 from finances.services.transfers_service import transfer_between_budgets
 from groups.models import Group
 
@@ -24,10 +29,7 @@ User = get_user_model()
 
 
 def get_back_url(instance) -> str:
-    return reverse_lazy(
-        "profile-page",
-        kwargs={"pk": instance.request.user.pk}
-    )
+    return reverse_lazy("profile-page", kwargs={"pk": instance.request.user.pk})
 
 
 class FinancesHomeView(TemplateView):
@@ -45,7 +47,8 @@ class BudgetUpdateView(LoginRequiredMixin, UpdateView):
 
 class TransferCreateView(
     LoginRequiredMixin,
-    View, ):
+    View,
+):
     OWNER_MODELS = {
         "event": Event,
         "group": Group,
@@ -61,10 +64,7 @@ class TransferCreateView(
 
         user = request.user
         from_budget = user.budget
-        to_budget = self.get_budget(
-            content_type=content_type,
-            object_id=object_id
-        )
+        to_budget = self.get_budget(content_type=content_type, object_id=object_id)
         date = form.cleaned_data.get("date") or timezone.now().date()
 
         transfer_between_budgets(
@@ -123,19 +123,13 @@ class TransactionListView(LoginRequiredMixin, ListView):
     model = Transaction
     template_name = "transactions/transaction_list.html"
 
-    TARGET_HANDLERS = {
-        "user": "get_user_transactions",
-        "event": "get_event_transactions",
-        "group": "get_group_transactions",
-    }
-
     def get_queryset(self):
         target = self.kwargs.get("target")
         pk = self.kwargs.get("pk")
 
-        handler_name = self.TARGET_HANDLERS.get(target)
-        if not handler_name:
-            raise Http404("Invalid target")
-
-        handler = getattr(self, handler_name)
-        return handler(pk)
+        if target == "user":
+            return get_user_transactions(self, pk)
+        elif target == "event":
+            return get_event_transactions(self, pk)
+        elif target == "group":
+            return get_group_transactions(self, pk)

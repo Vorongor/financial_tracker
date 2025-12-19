@@ -1,0 +1,53 @@
+<h3>List of sent connects</h3>
+<table class="table">
+  <thead>
+  <tr class="bg-dark">
+    <th class="bg-secondary bg-gradient">Username</th>
+    <th class="bg-secondary bg-gradient">First Name</th>
+    <th class="bg-secondary bg-gradient">Last Name</th>
+    <th class="bg-secondary bg-gradient">Status</th>
+    <th class="bg-secondary bg-gradient">Action</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for connect in sends_to_connect %}
+    {% if connect.from_user.id == user.id %}
+      <tr>
+        <td>{{ connect.to_user.username }}</td>
+        <td>{{ connect.to_user.first_name }}</td>
+        <td>{{ connect.to_user.last_name }}</td>
+        <td>
+          {{ connect.status }}
+        </td>
+        <td>
+          <form method="post"
+                action="{% url 'reject-connect' connect.id %}">
+            {% csrf_token %}
+            <button class="btn btn-outline-danger">
+              Delete
+            </button>
+          </form>
+        </td>
+      </tr>
+    {% else %}
+      <tr>
+        <td>{{ connect.from_user.username }}</td>
+        <td>{{ connect.from_user.first_name }}</td>
+        <td>{{ connect.from_user.last_name }}</td>
+        <td>
+          {{ connect.status }}
+        </td>
+        <td>
+          <form method="post"
+                action="{% url 'reject-connect' connect.id %}">
+            {% csrf_token %}
+            <button class="btn btn-outline-danger">
+              Delete
+            </button>
+          </form>
+        </td>
+      </tr>
+    {% endif %}
+  {% endfor %}
+  </tbody>
+</table>

@@ -53,89 +53,28 @@
   </form>
   <div class="container d-flex flex-row justify-content-center gap-5">
     <div class="col-12 col-md-6">
-      <h3>List of other users</h3>
-      <table class="table">
-        <thead>
-        <tr class="bg-dark">
-          <th class="bg-secondary bg-gradient">Username</th>
-          <th class="bg-secondary bg-gradient">First Name</th>
-          <th class="bg-secondary bg-gradient">Last Name</th>
-          <th class="bg-secondary bg-gradient">Connect</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for user in users %}
-          <tr>
-            <td>{{ user.username }}</td>
-            <td>{{ user.first_name }}</td>
-            <td>{{ user.last_name }}</td>
-            <td>
-              <form method="post" action="{% url 'user-connect' user.id %}">
-                {% csrf_token %}
-                <button class="btn btn-outline-success">
-                  Connect
-                </button>
-              </form>
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
+      {% if users %}
+        {% include "community/components/users.htm" %}
+      {% endif %}
+      {% if invite_to_connect %}
+        <hr>
+        {% include "community/components/invites.html" %}
+      {% endif %}
+      {% if black_list %}
+        <hr>
+        {% include "community/components/blacklist.html" %}
+      {% endif %}
     </div>
     <div class="col-12 col-md-6">
-      <h3>List of connection</h3>
-      <table class="table">
-        <thead>
-        <tr class="bg-dark">
-          <th class="bg-secondary bg-gradient">Username</th>
-          <th class="bg-secondary bg-gradient">First Name</th>
-          <th class="bg-secondary bg-gradient">Last Name</th>
-          <th class="bg-secondary bg-gradient">Status</th>
-          <th class="bg-secondary bg-gradient">Action</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for connect in connections %}
-          {% if connect.from_user.id == user.id %}
-            <tr>
-              <td>{{ connect.to_user.username }}</td>
-              <td>{{ connect.to_user.first_name }}</td>
-              <td>{{ connect.to_user.last_name }}</td>
-              <td>
-                {{ connect.status }}
-              </td>
-              <td>
-                <form method="post"
-                      action="{% url 'reject-connect' connect.id %}">
-                  {% csrf_token %}
-                  <button class="btn btn-outline-danger">
-                    Delete
-                  </button>
-                </form>
-              </td>
-            </tr>
-          {% else %}
-            <tr>
-              <td>{{ connect.from_user.username }}</td>
-              <td>{{ connect.from_user.first_name }}</td>
-              <td>{{ connect.from_user.last_name }}</td>
-              <td>
-                {{ connect.status }}
-              </td>
-              <td>
-                <form method="post"
-                      action="{% url 'reject-connect' connect.id %}">
-                  {% csrf_token %}
-                  <button class="btn btn-outline-danger">
-                    Delete
-                  </button>
-                </form>
-              </td>
-            </tr>
-          {% endif %}
-        {% endfor %}
-        </tbody>
-      </table>
+      {% if connections %}
+        {% include "community/components/connections.html" %}
+      {% endif %}
+
+      {% if sends_to_connect %}
+        <hr>
+        {% include "community/components/sent_to_connect.html" %}
+      {% endif %}
+
     </div>
   </div>
   {% include "modals/user_key_modal.html" %}

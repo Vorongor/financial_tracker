@@ -22,6 +22,6 @@ def get_user_connections(
 
     return UserConnection.objects.filter(query).distinct()
 
+
 def get_user_from_uk(uk: str) -> user:
     return get_object_or_404(user, connect_key=uk)
-

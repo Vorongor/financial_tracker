@@ -7,9 +7,9 @@
         <ul>
           {% for message in messages %}
             {% if "registration" in message.tags %}
-            <div class="alert alert-info">
-              {{ message }}
-            </div>
+              <div class="alert alert-info">
+                {{ message }}
+              </div>
             {% endif %}
           {% endfor %}
         </ul>
@@ -18,8 +18,8 @@
     <form method="post" action="{% url "login" %}">
       {% csrf_token %}
       <img class="mb-4"
-           src="{% static 'assets/images/bootstrap-logo-white.svg' %}"
-           alt="" width="72" height="57">
+           src="{% static 'assets/images/finanser_log_white.png' %}"
+           alt="" width="136" height="120">
       <h2 class="h3 mb-3 fw-normal">Please sign in</h2>
 
       {% if form.errors %}

@@ -19,14 +19,14 @@ from finances.custom_mixins import SuccessUrlFromNextMixin
 from finances.forms import TransferCreateForm, BudgetEditForm
 from groups.forms import GroupCreateForm, GroupEditForm, GroupEventCreateForm
 from groups.models import Group, GroupMembership, GroupEventConnection
-from groups.services.group_event_service import create_group_event, \
-    get_events_for_group
+from groups.services.group_event_service import create_group_event, get_events_for_group
 from groups.services.group_invitation import (
     create_group_invitation,
     accept_group_invitation,
     reject_group_invitation,
     promote_group_member,
-    demote_group_member, leave_group,
+    demote_group_member,
+    leave_group,
 )
 
 
@@ -37,9 +37,8 @@ class GroupsHomeView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         groups = Group.objects.filter(
-            Q(creator=user) |
-            Q(groupslink__user=user,
-              groupslink__status=Status.ACCEPTED)
+            Q(creator=user)
+            | Q(groupslink__user=user, groupslink__status=Status.ACCEPTED)
         ).distinct()
         context["groups"] = groups
 
@@ -75,8 +74,7 @@ class GroupCreateView(LoginRequiredMixin, CreateView):
         participants_ids = form.cleaned_data["participants"]
 
         create_group_invitation(
-            list_of_connects=participants_ids,
-            group_id=self.object.id
+            list_of_connects=participants_ids, group_id=self.object.id
         )
 
         return super().form_valid(form)
@@ -98,14 +96,9 @@ class GroupDetailView(
         members = GroupMembership.objects.filter(group_id=group.id)
         users = [
             connect.other_user(user)
-            for connect in get_user_connections(
-                user.id,
-                "accepted"
-            )
-            if connect.other_user(user).id not in members.values_list(
-                "user__id",
-                flat=True
-            )
+            for connect in get_user_connections(user.id, "accepted")
+            if connect.other_user(user).id
+            not in members.values_list("user__id", flat=True)
         ]
         user_role = members.filter(user=user).first().role
         delete_permission = "Creator" if group.creator else "Admin"
@@ -136,7 +129,7 @@ class GroupEditView(LoginRequiredMixin, View):
                 "group_form": GroupEditForm(instance=group),
                 "budget_form": BudgetEditForm(instance=budget),
                 "group": group,
-            }
+            },
         )
 
     @transaction.atomic
@@ -160,7 +153,7 @@ class GroupEditView(LoginRequiredMixin, View):
                 "group_form": group_form,
                 "budget_form": budget_form,
                 "group": group,
-            }
+            },
         )
 
 
@@ -178,7 +171,9 @@ class GroupInviteMemberView(LoginRequiredMixin, View):
 
         create_group_invitation(
             group_id=group.id,
-            list_of_connects=[user_id, ]
+            list_of_connects=[
+                user_id,
+            ],
         )
         return redirect("groups:detail", pk=pk)
 
@@ -246,9 +241,7 @@ class GroupEventsCreateView(LoginRequiredMixin, CreateView):
         self.group = get_object_or_404(Group, pk=kwargs["group_id"])
 
         if not GroupMembership.objects.filter(
-                group=self.group,
-                user=request.user,
-                status=Status.ACCEPTED
+            group=self.group, user=request.user, status=Status.ACCEPTED
         ).exists():
             raise ValidationError("You are not a member of this group")
 

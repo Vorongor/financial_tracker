@@ -1,6 +1,10 @@
 <h3>Transaction history</h3>
 {% if transaction_history %}
-  {% for transaction in transaction_history %}
+  {% for transaction in transaction_history|slice:":10" %}
     <p>{{ transaction.get_short_description }}</p>
   {% endfor %}
+  {% if transaction_history|length > 10 %}
+    <a href="{% url "transfer-history" target="user" pk=user.id %}">Show
+      all</a>
+  {% endif %}
 {% endif %}

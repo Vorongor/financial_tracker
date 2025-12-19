@@ -1,0 +1,35 @@
+<h3>Black list</h3>
+<table class="table">
+  <thead>
+  <tr class="bg-dark">
+    <th class="bg-secondary bg-gradient">Username</th>
+    <th class="bg-secondary bg-gradient">First Name</th>
+    <th class="bg-secondary bg-gradient">Last Name</th>
+    <th class="bg-secondary bg-gradient">Status</th>
+    <th class="bg-secondary bg-gradient">Action</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for connect in black_list %}
+
+    <tr>
+      <td>{{ connect.from_user.username }}</td>
+      <td>{{ connect.from_user.first_name }}</td>
+      <td>{{ connect.from_user.last_name }}</td>
+      <td>
+        {{ connect.status }}
+      </td>
+      <td>
+        <form method="post"
+              action="{% url 'unblock-connect' connect.id %}">
+          {% csrf_token %}
+          <button class="btn btn-warning">
+            Unblock
+          </button>
+        </form>
+      </td>
+    </tr>
+
+  {% endfor %}
+  </tbody>
+</table>

@@ -4,12 +4,10 @@ from addition_info.choise_models import Status, Role
 from groups.models import GroupMembership, Group
 
 
-def create_group_invitation(list_of_connects: list[int],
-                            group_id: int) -> None:
+def create_group_invitation(list_of_connects: list[int], group_id: int) -> None:
     existing = set(
         GroupMembership.objects.filter(
-            group_id=group_id,
-            user_id__in=list_of_connects
+            group_id=group_id, user_id__in=list_of_connects
         ).values_list("user_id", flat=True)
     )
 
@@ -24,8 +22,7 @@ def create_group_invitation(list_of_connects: list[int],
 
 def accept_group_invitation(group_id: int, user_id: int) -> None:
     group = GroupMembership.objects.select_for_update().get(
-        group_id=group_id,
-        user_id=user_id
+        group_id=group_id, user_id=user_id
     )
 
     if not group:
@@ -37,8 +34,7 @@ def accept_group_invitation(group_id: int, user_id: int) -> None:
 
 def reject_group_invitation(group_id: int, user_id: int) -> None:
     group = GroupMembership.objects.select_for_update().get(
-        group_id=group_id,
-        user_id=user_id
+        group_id=group_id, user_id=user_id
     )
 
     if not group:
@@ -49,8 +45,7 @@ def reject_group_invitation(group_id: int, user_id: int) -> None:
 
 def promote_group_member(group_id: int, user_id: int) -> None:
     group = GroupMembership.objects.select_for_update().get(
-        group_id=group_id,
-        user_id=user_id
+        group_id=group_id, user_id=user_id
     )
     if not group:
         raise ValidationError("Group not found")
@@ -67,8 +62,7 @@ def promote_group_member(group_id: int, user_id: int) -> None:
 
 def demote_group_member(group_id: int, user_id: int) -> None:
     group = GroupMembership.objects.select_for_update().get(
-        group_id=group_id,
-        user_id=user_id
+        group_id=group_id, user_id=user_id
     )
     if not group:
         raise ValidationError("Group not found")
@@ -85,16 +79,13 @@ def demote_group_member(group_id: int, user_id: int) -> None:
 
 def leave_group(group_id: int, user_id: int) -> None:
     group_membership = GroupMembership.objects.select_for_update().get(
-        group_id=group_id,
-        user_id=user_id
+        group_id=group_id, user_id=user_id
     )
 
     if group_membership:
         group_membership.delete()
 
-    group = Group.objects.select_for_update().get(
-        pk=group_id
-    )
+    group = Group.objects.select_for_update().get(pk=group_id)
 
     if not group:
         raise ValidationError("Group not found")
@@ -105,5 +96,3 @@ def leave_group(group_id: int, user_id: int) -> None:
 
     if not group.creator and not group_membership:
         group.delete()
-
-
