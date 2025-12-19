@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect, Http404
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import View
@@ -15,7 +15,7 @@ from django.views.generic import (
 
 from events.models import Event
 from finances.custom_mixins import SuccessUrlFromNextMixin
-from finances.models import Budget, Transaction
+from finances.models import Budget, Transaction, Category
 from finances.forms import UpdateBudgetForm, TransferCreateForm, TopUpBudgetForm
 from finances.services.history_service import (
     get_user_transactions,
@@ -133,3 +133,18 @@ class TransactionListView(LoginRequiredMixin, ListView):
             return get_event_transactions(self, pk)
         elif target == "group":
             return get_group_transactions(self, pk)
+
+
+class CategoryOptionsView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        transaction_type = kwargs.get('type') or request.GET.get('type')
+
+        categories = Category.objects.filter(is_active=True)
+
+        if transaction_type:
+            categories = categories.filter(type=transaction_type).order_by(
+                'order_index', 'name')
+
+        return render(request, "partials/categories_to_form.html", {
+            'categories': categories
+        })

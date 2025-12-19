@@ -6,18 +6,17 @@ from finances.models import Transaction, Category
 
 @transaction.atomic
 def transfer_between_budgets(
-    *,
-    amount: Decimal,
-    from_budget,
-    to_budget,
-    payer,
-    date,
-    note="",
-    category=None,
+        *,
+        amount: Decimal,
+        from_budget,
+        to_budget,
+        payer,
+        date,
+        note="",
+        category=None,
 ):
-    """
-    Atomic transfer: creates 2 transactions
-    """
+    expense_category = category if category and category.type == Category.Types.EXPENSE else None
+    income_category = category if category and category.type == Category.Types.INCOME else None
 
     # 1. EXPENSE from payer budget
     Transaction.objects.create(
@@ -26,7 +25,7 @@ def transfer_between_budgets(
         target=from_budget,
         payer=payer,
         date=date,
-        category=category,
+        category=expense_category,
         note=note,
     )
 
@@ -37,10 +36,9 @@ def transfer_between_budgets(
         target=to_budget,
         payer=payer,
         date=date,
-        category=category,
+        category=income_category,
         note=note,
     )
 
-    # 3. Recalc both budgets
     from_budget.recalc()
     to_budget.recalc()

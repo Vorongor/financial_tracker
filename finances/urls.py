@@ -6,12 +6,14 @@ from finances.views import (
     TransferCreateView,
     TopUpBudgetView,
     TransactionListView,
+    CategoryOptionsView,
 )
 
 urlpatterns = [
     path("", FinancesHomeView.as_view(), name="finances-home"),
     path(
-        "personal-budget/<int:pk>/", BudgetUpdateView.as_view(), name="personal-budget"
+        "personal-budget/<int:pk>/", BudgetUpdateView.as_view(),
+        name="personal-budget"
     ),
     path(
         "transfer-create/<str:content_type>/<int:object_id>/",
@@ -23,5 +25,10 @@ urlpatterns = [
         "<str:target>/history/<int:pk>/",
         TransactionListView.as_view(),
         name="transfer-history",
+    ),
+    path(
+        'ajax/categories/',
+        CategoryOptionsView.as_view(),
+         name='ajax_get_categories'
     ),
 ]

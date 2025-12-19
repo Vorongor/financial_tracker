@@ -2,20 +2,18 @@ import uuid
 
 from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db import models
 
+from accounts.services.user_budget_service import get_budget_for_instance
 from config import settings
 from finances.models import Budget
 
 
 class User(AbstractUser):
-    username = models.CharField(max_length=255, unique=True)
-    email = models.EmailField(max_length=255, unique=True)
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
     job = models.CharField(max_length=255, blank=True)
     salary = models.PositiveIntegerField(default=0)
-    default_currency = models.CharField(max_length=255, default="UAH")
+    default_currency = models.CharField(max_length=10, default="UAH")
     connect_key = models.UUIDField(
         default=uuid.uuid4,
         unique=True,
@@ -28,27 +26,13 @@ class User(AbstractUser):
             models.Index(fields=["username"]),
             models.Index(fields=["email"]),
         ]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["username", "email"],
-                name="unique_email_for_each_user",
-            ),
-        ]
 
     def __str__(self):
         return self.first_name + " " + self.last_name
 
     @property
     def budget(self):
-        """
-        Return the Budget instance for this User, or None.
-        Expects at most one Budget due to unique constraint in Budget.meta.
-        """
-        ct = ContentType.objects.get_for_model(self)
-        return Budget.objects.filter(
-            content_type=ct,
-            object_id=self.id
-        ).first()
+        return get_budget_for_instance(self)
 
     def get_user_uniq_key(self):
         return str(self.connect_key)
@@ -82,7 +66,15 @@ class UserConnection(models.Model):
             )
         ]
 
-    def other_user(self, user):
+    def clean(self):
+        if self.from_user_id == self.to_user_id:
+            raise ValidationError("User cannot connect to himself.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def other_user(self, user: User):
         """
         back other user's connections
         """

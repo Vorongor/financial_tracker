@@ -27,14 +27,7 @@ justify-content-center g-5">
               <div class="invalid-feedback d-block">{{ error }}</div>
             {% endfor %}
           </div>
-          <div class="form-floating text-secondary mb-4 modal-form-field">
-            <select name="type" class="form-select" id="typeInput">
-              {% for value, label in transaction_form.fields.type.choices %}
-                <option value="{{ value }}">{{ label }}</option>
-              {% endfor %}
-            </select>
-            <label for="typeInput">Type of transaction</label>
-          </div>
+
           <div class="form-floating text-secondary mb-4 modal-form-field">
             <input
                 type="date"
@@ -51,11 +44,25 @@ justify-content-center g-5">
           </div>
 
           <div class="form-floating text-secondary mb-4 modal-form-field">
-            <select name="category" class="form-select">
-              {% for value, label in transaction_form.fields.category.choices %}
+            <select name="type"
+                    class="form-select"
+                    id="typeInput"
+                    hx-get="{% url 'ajax_get_categories' %}"
+                    hx-trigger="change"
+                    hx-target="#categorySelect"
+                    hx-include="this">
+              {% for value, label in transaction_form.fields.type.choices %}
                 <option value="{{ value }}">{{ label }}</option>
               {% endfor %}
             </select>
+            <label for="typeInput">Type of transaction</label>
+          </div>
+
+          <div class="form-floating text-secondary mb-4 modal-form-field">
+            <select name="category" class="form-select" id="categorySelect">
+              {% include 'partials/categories_to_form.html' with categories=transaction_form.fields.category.queryset %}
+            </select>
+            <label for="categorySelect">Category</label>
           </div>
           <div class="form-floating text-secondary mb-4 modal-form-field">
             <input type="text"

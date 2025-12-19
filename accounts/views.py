@@ -194,7 +194,6 @@ class UserConnectView(LoginRequiredMixin, View):
 class UserConnectApproveView(LoginRequiredMixin, View):
     def post(self, request, connection_id):
         approve_user_to_connect(connection_id=connection_id)
-
         return redirect(request.META.get("HTTP_REFERER", "profile-dashboard"))
 
 
