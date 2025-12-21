@@ -10,7 +10,7 @@
           <form method="post"
                 action="{% url "groups:invite-member" pk=group.id user_id=connect.id %}">
             {% csrf_token %}
-            <button class="btn btn-outline-info btn-sm">
+            <button class="btn btn-info btn-sm">
               Invite
             </button>
           </form>

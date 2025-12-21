@@ -68,3 +68,8 @@ ul {
     display: block;
     width: 300px;
 }
+
+canvas {
+    max-width: 100%;
+    min-height: 260px;
+}

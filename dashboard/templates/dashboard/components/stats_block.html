@@ -1,0 +1,48 @@
+<div class="row text-center mb-4">
+  <div class="col">
+    <h5>Income</h5>
+    <p class="text-success">{{ kpi.total_income }}</p>
+  </div>
+  <div class="col">
+    <h5>Expense</h5>
+    <p class="text-danger">{{ kpi.total_expense }}</p>
+  </div>
+  <div class="col">
+    <h5>Balance</h5>
+    <p class="{% if kpi.balance >= 0 %}text-success{% else %}text-danger{% endif %}">
+      {{ kpi.balance }}
+    </p>
+  </div>
+</div>
+
+<div class="chart-container" style="position: relative; height:40vh; width:80vw">
+    <canvas id="cashflowChart"></canvas>
+</div>
+
+<script>
+
+  new Chart(document.getElementById("cashflowChart"), {
+    type: "line",
+    data: {
+      labels: [{% for p in cashflow.points %}"{{ p.date }}",{% endfor %}],
+      datasets: [
+        {
+          label: "Income",
+          data: [{% for p in cashflow.points %}{{ p.income }},{% endfor %}],
+          borderColor: 'rgb(00, 255, 000)',
+          tension: 0.1
+        },
+        {
+          label: "Expense",
+          data: [{% for p in cashflow.points %}{{ p.expense }},{% endfor %}],
+          borderColor: 'rgb(255, 00, 00)',
+          tension: 0.1
+        }
+      ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+  });
+</script>

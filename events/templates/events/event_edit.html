@@ -1,19 +1,119 @@
 {% extends "includes/index.html" %}
 {% load static %}
 {% block content %}
-  <form method="post">
-    {% csrf_token %}
 
-    <h5>Event</h5>
-    {{ event_form.as_p }}
+  <div class="container d-flex justify-content-center align-items-center py-5"
+       style="min-height: 80vh;">
+    <div
+        class="col-12 col-md-8 col-lg-6 p-4 bg-dark text-white rounded shadow-lg position-relative">
 
-    <hr>
+      <a href="{% url 'events:event-detail' pk=event.id %}"
+         class="position-absolute" style="top: 20px; left: 20px;">
+        <img src="{% static 'assets/images/backward-svg-white.svg' %}"
+             width="30" height="30" alt="Back">
+      </a>
 
-    <h5>Budget</h5>
-    {{ budget_form.as_p }}
+      <div class="text-center mb-4">
+        <img src="{% static 'assets/images/calendar-event-svg_white.svg' %}"
+             width="60" height="60" class="mb-3" alt="Edit Event">
+        <h2 class="fw-bold">Edit Event</h2>
+        <p class="text-secondary">Update your event and budget settings</p>
+      </div>
 
-    <button class="btn btn-primary">
-      Save changes
-    </button>
-  </form>
+      <form method="post">
+        {% csrf_token %}
+
+        {% if event_form.non_field_errors or budget_form.non_field_errors %}
+          <div class="alert alert-danger">
+            {{ event_form.non_field_errors }}
+            {{ budget_form.non_field_errors }}
+          </div>
+        {% endif %}
+
+        <h5 class="text-secondary mb-3 border-bottom border-secondary pb-2">
+          General Information</h5>
+
+        <div class="form-floating mb-3 text-secondary">
+          {{ event_form.name }}
+          <label for="{{ event_form.name.id_for_label }}">Event Name</label>
+          <div class="text-danger small">{{ event_form.name.errors }}</div>
+        </div>
+
+        <div class="form-floating mb-3 text-secondary">
+          {{ event_form.description }}
+          <label
+              for="{{ event_form.description.id_for_label }}">Description</label>
+          <div
+              class="text-danger small">{{ event_form.description.errors }}</div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label text-secondary small">Event Type</label>
+              {{ event_form.type }}
+              <div class="text-danger small">{{ event_form.type.errors }}</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label text-secondary small">Current
+                Status</label>
+              {{ event_form.status }}
+              <div
+                  class="text-danger small">{{ event_form.status.errors }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-floating mb-3 text-secondary">
+              {{ event_form.start_date }}
+              <label>Start Date</label>
+              <div
+                  class="text-danger small">{{ event_form.start_date.errors }}</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-floating mb-3 text-secondary">
+              {{ event_form.end_date }}
+              <label>End Date</label>
+              <div
+                  class="text-danger small">{{ event_form.end_date.errors }}</div>
+            </div>
+          </div>
+        </div>
+
+        <h5 class="text-secondary mt-4 mb-3 border-bottom border-secondary pb-2">
+          Financial Settings</h5>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-floating mb-3 text-secondary">
+              {{ budget_form.planned_amount }}
+              <label>Planned Goal</label>
+              <div
+                  class="text-danger small">{{ budget_form.planned_amount.errors }}</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-floating mb-3 text-secondary">
+              {{ budget_form.start_amount }}
+              <label>Initial Balance</label>
+              <div
+                  class="text-danger small">{{ budget_form.start_amount.errors }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <button type="submit" class="btn btn-primary btn-lg w-100 shadow">
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 {% endblock %}

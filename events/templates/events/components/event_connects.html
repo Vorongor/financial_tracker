@@ -10,7 +10,7 @@
             <form method="post"
                   action="{% url "events:event-add-members" pk=event.id user_id=user.id %}">
               {% csrf_token %}
-              <button class="btn btn-outline-info">
+              <button class="btn btn-info">
                 Invite
               </button>
             </form>

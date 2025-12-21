@@ -73,7 +73,7 @@ class Event(models.Model):
                 {"end_date": "end_date must be >= start_date."})
         if self.planned_amount < 0:
             raise ValidationError(
-                {"planned_budget": "planned_budget must be non-negative."}
+                {"planned_amount": "planned_budget must be non-negative."}
             )
 
     @property

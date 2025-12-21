@@ -1,0 +1,100 @@
+<div class="row text-center">
+
+  <!-- INCOME COLUMN -->
+  <div class="col-md-6 d-flex flex-row">
+    <div>
+      <h5 class="text-success">Income by Categories</h5>
+      <p>Total transactions: <strong>{{ pie_income.count }}</strong></p>
+
+      <ul class="list-unstyled text-start d-inline-block mb-4"
+          style="height: 200px; overflow: auto;">
+        {% for category_name, value in pie_income.tags.items %}
+          <li>
+            <span class="badge bg-success">{{ value }}</span>
+            {{ category_name }}
+          </li>
+        {% empty %}
+          <li>No income data</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div>
+      <div style="min-height: 250px; min-width: 250px; position: relative;">
+        <canvas id="incomePieChart"></canvas>
+      </div>
+
+      <h6 class="text-center mt-3">Income Structure</h6>
+    </div>
+  </div>
+
+  <!-- EXPENSE COLUMN -->
+  <div class="col-md-6 d-flex flex-row-reverse">
+    <div>
+      <h5 class="text-danger">Expense by Categories</h5>
+      <p>Total transactions: <strong>{{ pie_expense.count }}</strong></p>
+
+      <ul class="list-unstyled text-start d-inline-block mb-4"
+          style="height: 200px; overflow: auto;">
+        {% for category_name, value in pie_expense.tags.items %}
+          <li>
+            <span class="badge bg-danger">{{ value }}</span>
+            {{ category_name }}
+          </li>
+        {% empty %}
+          <li>No expense data</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div>
+      <div style="min-height: 250px; min-width: 250px; position: relative;">
+        <canvas id="expensePieChart"></canvas>
+      </div>
+
+      <h6 class="text-center mt-3">Income Structure</h6>
+    </div>
+  </div>
+  <script>
+      function createPieChart(elementId, dataPoints, label) {
+          const ctx = document.getElementById(elementId);
+          if (!ctx) return;
+
+          new Chart(ctx, {
+              type: 'doughnut',
+              data: {
+                  labels: dataPoints.map(p => p.name),
+                  datasets: [{
+                      data: dataPoints.map(p => p.value),
+                      backgroundColor: [
+                          '#2ecc71', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#e74c3c'
+                      ],
+                      borderWidth: 1
+                  }]
+              },
+              options: {
+                  plugins: {
+                      tooltip: {
+                          callbacks: {
+                              label: function (context) {
+                                  return ` ${context.label}: ${context.raw}%`;
+                              }
+                          }
+                      }
+                  }
+              }
+          });
+      }
+
+      const incomePoints = [
+              {% for p in pie_tag_incomes.points %}{ name: "{{ p.tag_name }}",
+                  value: {{ p.percentage }} },{% endfor %}
+      ];
+
+      const expensePoints = [
+              {% for p in pie_tag_expense.points %}{ name: "{{ p.tag_name }}",
+                  value: {{ p.percentage }} },{% endfor %}
+      ];
+
+      createPieChart('incomePieChart', incomePoints, 'Income');
+      createPieChart('expensePieChart', expensePoints, 'Expense');
+  </script>
+</div>

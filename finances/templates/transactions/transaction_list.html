@@ -1,10 +1,68 @@
 {% extends "includes/index.html" %}
-{% load static %}
+
 {% block content %}
-  <h2>list of transactions</h2>
-  <ul>
-    {% for transaction in transaction_list %}
-      <li>{{ transaction.get_full_description }}</li>
-    {% endfor %}
-  </ul>
+  <div class="container py-4">
+    <div
+        class="d-flex justify-content-between align-items-center mb-4 text-white">
+      <h2>Transaction History</h2>
+      <span class="badge bg-primary">{{ target|title }}: #{{ pk }}</span>
+    </div>
+
+    <div class="card-body">
+      <form class="row g-3"
+            hx-get="{{ request.path }}"
+            hx-target="#transaction-table-body"
+            hx-push-url="true"
+            hx-trigger="submit, change, keyup delay:500ms from:#search-input">
+        <div class="col-md-4">
+          <label class="small text-secondary">Search Category or Notes</label>
+          <input type="text" name="search" id="search-input"
+                 class="form-control bg-dark text-white border-secondary"
+                 placeholder="e.g. Food, Salary..."
+                 value="{{ request.GET.search }}"
+                 autocomplete="off">
+        </div>
+
+        <div class="col-md-3">
+          <label class="small text-secondary">Since Date</label>
+          <input type="date" name="date_from"
+                 class="form-control bg-dark text-white border-secondary filter-control">
+        </div>
+
+        <div class="col-md-3">
+          <label class="small text-secondary">Type</label>
+          <select name="type"
+                  class="form-select bg-dark text-white border-secondary filter-control">
+            <option value="">All Types</option>
+            <option value="Income">Income</option>
+            <option value="Expense">Expense</option>
+          </select>
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end">
+          <a href="{{ request.path }}" class="btn btn-outline-secondary w-100">Reset</a>
+        </div>
+      </form>
+    </div>
+
+    <div class="card bg-dark text-white shadow-sm overflow-hidden mt-3">
+      <div class="table-responsive">
+        <table class="table table-dark table-hover mb-0 align-middle">
+          <thead class="table-secondary text-dark">
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Category</th>
+            <th>Payer</th>
+            <th>Amount</th>
+            <th class="text-end">Actions</th>
+          </tr>
+          </thead>
+          <tbody id="transaction-table-body">
+          {% include "partials/transaction_table_rows.html" %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 {% endblock %}

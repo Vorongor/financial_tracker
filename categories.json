@@ -178,5 +178,17 @@
     "type": "Expense",
     "color_hex": "#95A5A6",
     "order_index": 99
+  },
+  {
+    "name": "Spent on donate",
+    "type": "Expense",
+    "color_hex": "#95A5A6",
+    "order_index": 100
+  },
+  {
+    "name": "Receive from saved",
+    "type": "Income",
+    "color_hex": "#95A5A6",
+    "order_index": 101
   }
 ]

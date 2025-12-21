@@ -5,7 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from accounts.services.user_budget_service import get_budget_for_instance
+from accounts.services.user_budget_service import UserBudgetService
 from config import settings
 from finances.models import Budget
 
@@ -32,7 +32,7 @@ class User(AbstractUser):
 
     @property
     def budget(self):
-        return get_budget_for_instance(self)
+        return UserBudgetService.get_budget_for_instance(self)
 
     def get_user_uniq_key(self):
         return str(self.connect_key)

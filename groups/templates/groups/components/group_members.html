@@ -14,7 +14,7 @@
               <form method="post"
                     action="{% url "groups:promote" pk=group.id user_id=member.user.id %}">
                 {% csrf_token %}
-                <button class="btn btn-outline-info btn-sm">
+                <button class="btn btn-success btn-sm">
                   Promote
                 </button>
               </form>
@@ -23,7 +23,7 @@
               <form method="post"
                     action="{% url "groups:demote" pk=group.id user_id=member.user.id %}">
                 {% csrf_token %}
-                <button class="btn btn-outline-warning btn-sm">
+                <button class="btn btn-warning btn-sm">
                   Demote
                 </button>
               </form>
@@ -32,7 +32,7 @@
               <form method="post"
                     action="{% url "groups:reject-invite" pk=group.id user_id=member.user.id stay="inside" %}">
                 {% csrf_token %}
-                <button class="btn btn-outline-danger btn-sm">
+                <button class="btn btn-danger btn-sm">
                   Delete
                 </button>
               </form>

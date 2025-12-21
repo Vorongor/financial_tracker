@@ -10,20 +10,14 @@ from django.views.generic import (
     DetailView,
     DeleteView,
 )
-from accounts.services.receive_connection import get_user_connections
+from accounts.services.receive_connection import UserConnectionsService
 from addition_info.choise_models import Status, Role
+from dashboard.services.event_stats import EventAnalyticsService
 from events.forms import EventPrivateCreateForm, EventEditForm
 from events.models import Event, EventMembership
-from events.services.event_invitation import (
-    create_event_invitation,
-    reject_event_invitation,
-    accept_event_invitation,
-    promote_member,
-    leave_event,
-)
+from events.services.event_invitation import EventInvitationService
 from finances.forms import TransferCreateForm, BudgetEditForm
 from finances.models import Budget
-from groups.models import Group, GroupEventConnection
 
 
 class EventHeroView(LoginRequiredMixin, TemplateView):
@@ -50,6 +44,7 @@ class EventHeroView(LoginRequiredMixin, TemplateView):
             accessibility=Event.Accessibility.GROUP,
             memberships__status=Status.ACCEPTED,
         )
+
         return context
 
 
@@ -86,7 +81,7 @@ class EventCreateView(LoginRequiredMixin, CreateView):
         participants_ids = list(
             map(int, form.cleaned_data.get("participants", []))
         )
-        create_event_invitation(
+        EventInvitationService.create_event_invitation(
             list_of_connects=participants_ids, event_id=self.object.id
         )
 
@@ -98,36 +93,64 @@ class EventDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        event = self.get_object()
+        event = self.object
+        budget = event.budget
         user = self.request.user
-        members = EventMembership.objects.filter(event_id=self.object.id)
-        user_role = members.filter(user=user).first().role
 
-        users = [
-            connect.other_user(user)
-            for connect in get_user_connections(user.id, "accepted")
-            if connect.other_user(user).id
-            not in members.values_list("user__id", flat=True)
-        ]
+        members_qs = EventMembership.objects.filter(
+            event=event
+        ).select_related('user')
 
-        context["can_delete_event"] = (
-            event.creator and event.creator == user
-                                      ) or (
-            not event.creator and user_role == "Admin"
+        user_membership = next((
+            member
+            for member in members_qs
+            if member.user_id == user.id),
+            None
         )
-        context["transaction_history"] = self.object.budget.transactions.all()
-        context["current_budget"] = self.object.budget.get_budget_data()
-        context["transaction_form"] = TransferCreateForm()
-        context["content_type"] = "event"
-        context["object_id"] = event.id
-        context["user_role"] = user_role
-        if self.object.type == Event.Accessibility.PRIVATE:
+        user_role = user_membership.role if user_membership else None
+
+        member_ids = set(members_qs.values_list("user_id", flat=True))
+
+        potential_invites = []
+        for connect in UserConnectionsService.get_user_connections(
+                user.id,
+                "accepted"
+        ):
+            other_user = connect.other_user(user)
+            if other_user.id not in member_ids:
+                potential_invites.append(other_user)
+
+        try:
+            budget = event.budget
+            context["current_budget"] = budget.get_budget_data()
+            context[
+                "transaction_history"] = budget.transactions.select_related(
+                'category', 'payer'
+            ).all()
+        except AttributeError:
+            context["current_budget"] = None
+            context["transaction_history"] = []
+
+        context.update({
+            "can_delete_event": (event.creator_id == user.id) or (
+                    not event.creator and user_role == "Admin"),
+            "transaction_form": TransferCreateForm(),
+            "content_type": "event",
+            "object_id": event.id,
+            "user_role": user_role,
+        })
+        context["analytics"] = EventAnalyticsService.get_event_stats(
+            event,
+            budget,
+        )
+        context["social_analytics"] = EventAnalyticsService.get_social_stats(
+            event, budget)
+        if event.type == Event.Accessibility.PRIVATE:
             context["connects"] = []
             context["members"] = []
-
         else:
-            context["connects"] = users
-            context["members"] = members
+            context["connects"] = potential_invites
+            context["members"] = members_qs
 
         return context
 
@@ -174,6 +197,10 @@ class EventUpdateView(LoginRequiredMixin, View):
             event_form.save()
             budget_form.save()
             budget.recalc()
+
+            event.planned_amount = budget.planned_amount
+            event.save()
+
             return redirect("events:event-detail", pk=pk)
 
         return render(
@@ -195,14 +222,20 @@ class EventAddMembersView(LoginRequiredMixin, View):
         if user_id == request.user.id:
             return redirect("events:event-detail", pk=pk)
 
-        create_event_invitation(list_of_connects=[user_id], event_id=event.id)
+        EventInvitationService.create_event_invitation(
+            list_of_connects=[user_id],
+            event_id=event.id
+        )
 
         return redirect("events:event-detail", pk=pk)
 
 
 class EventAcceptInviteView(LoginRequiredMixin, View):
     def post(self, request, pk):
-        accept_event_invitation(event_id=pk, user_id=request.user.id)
+        EventInvitationService.accept_event_invitation(
+            event_id=pk,
+            user_id=request.user.id
+        )
 
         return redirect("events:event-detail", pk=pk)
 
@@ -215,7 +248,10 @@ class EventRejectMembersView(LoginRequiredMixin, View):
         if user_id == request.user.id:
             return redirect("events:event-detail", pk=pk)
 
-        reject_event_invitation(event_id=event.id, user_id=user_id)
+        EventInvitationService.reject_event_invitation(
+            event_id=event.id,
+            user_id=user_id
+        )
 
         if stay == "inside":
             return redirect("events:event-detail", pk=pk)
@@ -230,7 +266,10 @@ class EventUpdateMembersView(LoginRequiredMixin, View):
         if user_id == request.user.id:
             return redirect("events:event-detail", pk=pk)
 
-        promote_member(event_id=event.id, user_id=user_id)
+        EventInvitationService.promote_member(
+            event_id=event.id,
+            user_id=user_id
+        )
 
         return redirect("events:event-detail", pk=pk)
 
@@ -239,5 +278,8 @@ class EventLeaveView(LoginRequiredMixin, View):
     def post(self, request, pk):
         event = get_object_or_404(Event, pk=pk)
         user = request.user
-        leave_event(event=event, user=user)
+        EventInvitationService.leave_event(
+            event=event,
+            user=user
+        )
         return redirect("events:event-hero")

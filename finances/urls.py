@@ -6,7 +6,7 @@ from finances.views import (
     TransferCreateView,
     TopUpBudgetView,
     TransactionListView,
-    CategoryOptionsView,
+    CategoryOptionsView, SetExpenseBudgetView,
 )
 
 urlpatterns = [
@@ -20,7 +20,16 @@ urlpatterns = [
         TransferCreateView.as_view(),
         name="transfer-create",
     ),
-    path("budget/top-up/", TopUpBudgetView.as_view(), name="budget-top-up"),
+    path(
+        "budget/top-up/",
+        TopUpBudgetView.as_view(),
+        name="budget-top-up"
+    ),
+    path(
+        "budget/set-expebse/",
+        SetExpenseBudgetView.as_view(),
+        name="set-expense-budget"
+    ),
     path(
         "<str:target>/history/<int:pk>/",
         TransactionListView.as_view(),

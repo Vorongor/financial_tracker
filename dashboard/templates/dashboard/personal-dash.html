@@ -1,0 +1,39 @@
+{% extends "includes/index.html" %}
+
+{% block content %}
+  <div class="container mt-4">
+    <form
+        hx-get="{% url 'dashboard:personal-dash-stats' %}"
+        hx-target="#stats-container"
+        hx-trigger="change, submit, load"
+        class="row g-3 mb-4"
+    >
+      <div class="col-auto">
+        <label class="form-label small text-muted">From</label>
+        <input type="date"
+               name="from"
+               class="form-control"
+               value="{{ default_from }}"
+               required>
+      </div>
+      <div class="col-auto">
+        <label class="form-label small text-muted">To</label>
+        <input type="date"
+               name="to"
+               class="form-control"
+               value="{{ default_to }}"
+               required>
+      </div>
+      <div class="col-auto d-flex align-items-end">
+        <button type="submit" class="btn btn-primary">Apply Filter</button>
+      </div>
+    </form>
+
+    <div id="stats-container">
+      {% include "dashboard/components/stats_block.html" %}
+    </div>
+  <div class="mt-5">
+    {% include "dashboard/components/category_block.html" %}
+  </div>
+  </div>
+{% endblock %}

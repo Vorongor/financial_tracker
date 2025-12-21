@@ -22,13 +22,13 @@
   <p class="text-secondary">{{ group.description }}</p>
 
   <div class="d-flex justify-content-center flex-wrap gap-5 mt-3">
-    <button class="btn btn-outline-info"
+    <button class="btn btn-primary"
             data-bs-toggle="modal"
             data-bs-target="#transactionModal">
       Add transaction
     </button>
     {% if user_role != "Member" %}
-      <button class="btn btn-outline-success"
+      <button class="btn btn-primary"
               data-bs-toggle="modal"
               data-bs-target="#userKeyModal">
         Add member
@@ -39,10 +39,10 @@
         action="{% url "groups:leave-group" group_id=group.id %}">
       {% csrf_token %}
       <input type="submit" value="Leave group"
-             class="btn btn-outline-warning">
+             class="btn btn-danger">
     </form>
     {% if user_role == delete_permission %}
-      <a class="btn btn-outline-danger"
+      <a class="btn btn-danger"
          href="{% url "groups:delete" pk=group.id %}">
         Delete group
       </a>

@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ModelForm
 
-from accounts.services.receive_connection import get_user_connections
+from accounts.services.receive_connection import UserConnectionsService
 from events.models import Event
 from groups.models import Group
 
@@ -43,17 +43,27 @@ class GroupCreateForm(ModelForm):
         user = kwargs.pop("user")
         super().__init__(*args, **kwargs)
 
-        connections = get_user_connections(user.id, "accepted")
+        connections = UserConnectionsService.get_user_connections(
+            user.id,
+            "accepted"
+        )
 
         self.fields["participants"].choices = [
-            (c.other_user(user).id, c.other_user(user).username) for c in connections
+            (c.other_user(user).id, c.other_user(user).username) for c in
+            connections
         ]
 
 
 class GroupEditForm(ModelForm):
     class Meta:
         model = Group
-        fields = ("name", "description", "state", "start_date", "end_date")
+        fields = (
+            "name",
+            "description",
+            "state",
+            "start_date",
+            "end_date"
+        )
 
 
 class GroupEventCreateForm(forms.ModelForm):
@@ -108,10 +118,12 @@ class GroupEventCreateForm(forms.ModelForm):
         planned_amount = cleaned_data.get("planned_amount")
 
         if start_date and end_date and start_date > end_date:
-            raise forms.ValidationError("End date cannot be earlier than start date.")
+            raise forms.ValidationError(
+                "End date cannot be earlier than start date.")
 
         if planned_amount is not None and planned_amount < 0:
-            raise forms.ValidationError("Planned amount must be zero or positive.")
+            raise forms.ValidationError(
+                "Planned amount must be zero or positive.")
         return cleaned_data
 
     def save(self, commit=True):

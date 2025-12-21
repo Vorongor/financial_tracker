@@ -1,8 +1,7 @@
 from django import forms
 from django.forms import ModelForm
-from pkg_resources import require
 
-from accounts.services.receive_connection import get_user_connections
+from accounts.services.receive_connection import UserConnectionsService
 from .models import Event
 
 
@@ -56,7 +55,10 @@ class EventPrivateCreateForm(forms.ModelForm):
         self.group = kwargs.pop("group", None)
         super().__init__(*args, **kwargs)
 
-        connections = get_user_connections(user.id, "accepted")
+        connections = UserConnectionsService.get_user_connections(
+            user.id,
+            "accepted"
+        )
 
         self.fields["participants"].choices = [
             (
@@ -99,5 +101,25 @@ class EventEditForm(ModelForm):
             "end_date",
             "status",
             "type",
-            "status",
         )
+        widgets = {
+            "name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Event name"}
+            ),
+            "description": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 4,
+                    "placeholder": "Optional description",
+                }
+            ),
+            "start_date": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}
+            ),
+            "end_date": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}
+            ),
+            "type": forms.Select(attrs={"class": "form-select"}),
+            "status": forms.Select(attrs={"class": "form-select"}),
+
+        }

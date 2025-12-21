@@ -21,7 +21,7 @@
                 <form method="post"
                       action="{% url "events:event-promote-members" pk=event.id user_id=membership.user.id %}">
                   {% csrf_token %}
-                  <button class="btn btn-outline-warning">
+                  <button class="btn btn-warning">
                     Upraise
                   </button>
                 </form>
@@ -30,7 +30,7 @@
                 <form method="post"
                       action="{% url "events:event-reject-members" pk=event.id user_id=membership.user.id stay="inside" %}">
                 {% csrf_token %}
-                <button class="btn btn-outline-danger">
+                <button class="btn btn-danger">
                   Remove
                 </button>
               {% endif %}

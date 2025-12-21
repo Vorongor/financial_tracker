@@ -1,5 +1,5 @@
 <h3>List of other users</h3>
-<table class="table">
+<table class="table" >
   <thead>
   <tr class="bg-dark">
     <th class="bg-secondary bg-gradient">Username</th>
@@ -17,7 +17,7 @@
       <td>
         <form method="post" action="{% url 'user-connect' user.id %}">
           {% csrf_token %}
-          <button class="btn btn-outline-success">
+          <button class="btn btn-success">
             Connect
           </button>
         </form>

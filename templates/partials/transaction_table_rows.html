@@ -1,0 +1,39 @@
+{% for transaction in transaction_list %}
+  <tr>
+    <td class="small">{{ transaction.date|date:"d M Y H:i" }}</td>
+    <td>
+        <span
+            class="badge {% if transaction.type == 'Income' %}bg-success{% else %}bg-danger{% endif %}">
+            {{ transaction.type }}
+        </span>
+    </td>
+    <td>
+      {% if transaction.category %}
+        <span class="text-info">{{ transaction.category.name }}</span>
+      {% else %}
+        <span class="text-muted">—</span>
+      {% endif %}
+    </td>
+    <td>{{ transaction.payer.username }}</td>
+    <td class="fw-bold {% if transaction.type == 'Income' %}text-success{% else %}text-danger{% endif %}">
+      {% if transaction.type == 'Income' %}+{% else %}
+        -{% endif %}{{ transaction.amount }}
+    </td>
+    <td class="text-end">
+      <div class="btn-group btn-group-sm d-flex flex-row gap-2">
+        <button class="btn btn-outline-info" title="Edit">
+          <i class="bi bi-pencil"></i> Edit
+        </button>
+        <button class="btn btn-outline-danger" title="Delete">
+          <i class="bi bi-trash"></i> Delete
+        </button>
+      </div>
+    </td>
+  </tr>
+{% empty %}
+  <tr>
+    <td colspan="6" class="text-center py-4 text-muted fst-italic">
+      No transactions found matching criteria.
+    </td>
+  </tr>
+{% endfor %}

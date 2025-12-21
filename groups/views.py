@@ -12,22 +12,15 @@ from django.views.generic import (
     DeleteView,
 )
 
-from accounts.services.receive_connection import get_user_connections
+from accounts.services.receive_connection import UserConnectionsService
 from addition_info.choise_models import Status, Role
 from events.models import Event
 from finances.custom_mixins import SuccessUrlFromNextMixin
 from finances.forms import TransferCreateForm, BudgetEditForm
 from groups.forms import GroupCreateForm, GroupEditForm, GroupEventCreateForm
-from groups.models import Group, GroupMembership, GroupEventConnection
-from groups.services.group_event_service import create_group_event, get_events_for_group
-from groups.services.group_invitation import (
-    create_group_invitation,
-    accept_group_invitation,
-    reject_group_invitation,
-    promote_group_member,
-    demote_group_member,
-    leave_group,
-)
+from groups.models import Group, GroupMembership
+from groups.services.group_event_service import GroupEventService
+from groups.services.group_invitation import GroupInvitationService
 
 
 class GroupsHomeView(LoginRequiredMixin, TemplateView):
@@ -73,45 +66,70 @@ class GroupCreateView(LoginRequiredMixin, CreateView):
 
         participants_ids = form.cleaned_data["participants"]
 
-        create_group_invitation(
+        GroupInvitationService.create_group_invitation(
             list_of_connects=participants_ids, group_id=self.object.id
         )
 
         return super().form_valid(form)
 
 
-class GroupDetailView(
-    LoginRequiredMixin,
-    SuccessUrlFromNextMixin,
-    DetailView,
-):
+class GroupDetailView(LoginRequiredMixin, SuccessUrlFromNextMixin, DetailView):
     model = Group
-    fields = "__all__"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         group = self.object
         user = self.request.user
-        transaction_history = group.budget.transactions.all()
-        members = GroupMembership.objects.filter(group_id=group.id)
-        users = [
+
+        members_qs = GroupMembership.objects.filter(
+            group=group
+        ).select_related('user')
+
+        member_ids = set(members_qs.values_list("user_id", flat=True))
+
+        user_membership = next((
+            member
+            for member in members_qs
+            if member.user_id == user.id),
+            None
+        )
+        user_role = user_membership.role if user_membership else None
+
+        potential_invites = [
             connect.other_user(user)
-            for connect in get_user_connections(user.id, "accepted")
-            if connect.other_user(user).id
-            not in members.values_list("user__id", flat=True)
+            for connect in UserConnectionsService.get_user_connections(
+                user.id,
+                "accepted"
+            )
+            if connect.other_user(user).id not in member_ids
         ]
-        user_role = members.filter(user=user).first().role
-        delete_permission = "Creator" if group.creator else "Admin"
-        context["related_events"] = get_events_for_group(group_id=group.id)
-        context["transaction_history"] = transaction_history
-        context["current_budget"] = self.object.budget.get_budget_data()
-        context["delete_permission"] = delete_permission
-        context["transaction_form"] = TransferCreateForm()
-        context["content_type"] = "group"
-        context["object_id"] = group.id
-        context["user_role"] = user_role
-        context["connects"] = users
-        context["members"] = members
+
+        try:
+            budget = group.budget
+            context["current_budget"] = budget.get_budget_data()
+            context[
+                "transaction_history"] = budget.transactions.select_related(
+                'category', 'payer'
+            ).all()
+        except AttributeError:
+            context["current_budget"] = None
+            context["transaction_history"] = []
+
+        delete_permission = "Creator" if group.creator_id else "Admin"
+
+        context.update({
+            "related_events": GroupEventService.get_events_for_group(
+                group_id=group.id
+            ),
+            "delete_permission": delete_permission,
+            "transaction_form": TransferCreateForm(),
+            "content_type": "group",
+            "object_id": group.id,
+            "user_role": user_role,
+            "connects": potential_invites,
+            "members": members_qs,
+        })
+
         return context
 
 
@@ -169,7 +187,7 @@ class GroupInviteMemberView(LoginRequiredMixin, View):
         if not group:
             raise ValidationError("Group not found")
 
-        create_group_invitation(
+        GroupInvitationService.create_group_invitation(
             group_id=group.id,
             list_of_connects=[
                 user_id,
@@ -185,7 +203,10 @@ class GroupAcceptInviteView(LoginRequiredMixin, View):
         if not group:
             raise ValidationError("Group not found")
 
-        accept_group_invitation(group_id=group.id, user_id=user_id)
+        GroupInvitationService.accept_group_invitation(
+            group_id=group.id,
+            user_id=user_id
+        )
         return redirect("groups:home")
 
 
@@ -196,7 +217,10 @@ class GroupRejectInviteView(LoginRequiredMixin, View):
         if not group:
             raise ValidationError("Group not found")
 
-        reject_group_invitation(group_id=group.id, user_id=user_id)
+        GroupInvitationService.reject_group_invitation(
+            group_id=group.id,
+            user_id=user_id
+        )
 
         if stay == "inside":
             return redirect("groups:detail", pk=pk)
@@ -211,7 +235,10 @@ class GroupPromoteView(LoginRequiredMixin, View):
         if not group:
             raise ValidationError("Group not found")
 
-        promote_group_member(group_id=group.id, user_id=user_id)
+        GroupInvitationService.promote_group_member(
+            group_id=group.id,
+            user_id=user_id
+        )
         return redirect("groups:detail", pk=pk)
 
 
@@ -222,13 +249,19 @@ class GroupDemoteView(LoginRequiredMixin, View):
         if not group:
             raise ValidationError("Group not found")
 
-        demote_group_member(group_id=group.id, user_id=user_id)
+        GroupInvitationService.demote_group_member(
+            group_id=group.id,
+            user_id=user_id
+        )
         return redirect("groups:detail", pk=pk)
 
 
 class LeaveGroupView(LoginRequiredMixin, View):
     def post(self, request, group_id):
-        leave_group(group_id=group_id, user_id=request.user.id)
+        GroupInvitationService.leave_group(
+            group_id=group_id,
+            user_id=request.user.id
+        )
         return redirect("groups:home")
 
 
@@ -241,7 +274,7 @@ class GroupEventsCreateView(LoginRequiredMixin, CreateView):
         self.group = get_object_or_404(Group, pk=kwargs["group_id"])
 
         if not GroupMembership.objects.filter(
-            group=self.group, user=request.user, status=Status.ACCEPTED
+                group=self.group, user=request.user, status=Status.ACCEPTED
         ).exists():
             raise ValidationError("You are not a member of this group")
 
@@ -260,7 +293,7 @@ class GroupEventsCreateView(LoginRequiredMixin, CreateView):
         event.save()
 
         with transaction.atomic():
-            event = create_group_event(
+            GroupEventService.create_group_event(
                 group=self.group,
                 event=event,
             )

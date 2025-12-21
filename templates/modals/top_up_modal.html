@@ -14,7 +14,7 @@
 
         <div class="modal-body d-flex flex-column align-items-center
 justify-content-center g-5">
-          <div class="form-floating text-secondary mb-4">
+          <div class="form-floating text-secondary mb-4 modal-form-field">
             <input type="number"
                    name="amount"
                    class="form-control {% if form.amount.errors %}is-invalid{% endif %}"
@@ -26,20 +26,47 @@ justify-content-center g-5">
               <div class="invalid-feedback d-block">{{ error }}</div>
             {% endfor %}
           </div>
+          <div class="form-floating text-secondary mb-4 modal-form-field">
+            <select name="category"
+                    class="form-select {% if form.category.errors %}is-invalid{% endif %}"
+                    id="categorySelect">
+              <option value="" selected>None</option>
+              {% for category in categories_income %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+              {% endfor %}
+            </select>
+            <label for="categorySelect">Income Category</label>
+            {% for error in form.category.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
 
-          <div class="form-floating text-secondary mb-4">
+          <div class="form-floating text-secondary mb-4 modal-form-field">
             <input type="text"
                    name="note"
                    class="form-control {% if form.note.errors %}is-invalid{% endif %}"
                    id="noteInput"
                    value="{{ form.note.value|default:'' }}"
-                   required>
+            >
             <label for="noteInput">Comment</label>
             {% for error in form.note.errors %}
               <div class="invalid-feedback d-block">{{ error }}</div>
             {% endfor %}
           </div>
+          <div class="form-floating text-secondary mb-4 modal-form-field">
+            <input type="date"
+                   name="date"
+                   class="form-control {% if form.date.errors %}is-invalid{% endif %}"
+                   id="dateInput"
+                   value="{{ form.date.value|default:'' }}"
+            >
+            <label for="dateInput">Date</label>
+            {% for error in form.date.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
         </div>
+
 
         <div class="modal-footer">
           <button type="submit" class="btn btn-outline-success">

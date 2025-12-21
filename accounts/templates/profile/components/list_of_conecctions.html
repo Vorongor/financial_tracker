@@ -2,7 +2,7 @@
   <h3 class="mb-3 mt-5">My connections</h3>
   <ul class="d-flex flex-column gap-2 list-group">
     {% for connection in connections|slice:":4" %}
-      <li class="d-flex flex-row align-center justify-content-around list-group-item list-group-item-dark">
+      <li class="d-flex flex-row align-center justify-content-between list-group-item list-group-item-dark">
         <p class="text-dark">
           {% if connection.from_user.id == user.id %}
             {{ connection.to_user.username }}
@@ -17,7 +17,7 @@
         <form method="post"
               action="{% url 'reject-connect' connection.id %}">
           {% csrf_token %}
-          <button class="btn btn-outline-danger">
+          <button class="btn btn-danger">
             Delete
           </button>
         </form>

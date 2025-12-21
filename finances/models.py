@@ -60,7 +60,6 @@ class Budget(models.Model):
         }
 
     def clean(self):
-        """Ensure non-negative monetary fields"""
         for field in (
                 "total_income",
                 "total_expenses",
@@ -73,11 +72,6 @@ class Budget(models.Model):
 
     @transaction.atomic
     def recalc(self, save: bool = True):
-        """
-        Recalculate totals from linked transactions.
-        Assumes Transaction.target -> this Budget (related_name='transactions').
-        """
-
         incomes = self.transactions.filter(
             type=Transaction.Types.INCOME
         ).aggregate(
@@ -129,10 +123,6 @@ class Category(models.Model):
 
 
 class Transaction(models.Model):
-    """
-    Transaction belongs to a Budget (target). Payer is a User.
-    """
-
     class Types(models.TextChoices):
         INCOME = "Income"
         EXPENSE = "Expense"
@@ -146,7 +136,7 @@ class Transaction(models.Model):
         choices=Types.choices,
         default=Types.INCOME,
     )
-    date = models.DateField(default=timezone.now)
+    date = models.DateTimeField(default=timezone.now)
     timestamp_create = models.DateTimeField(auto_now_add=True)
     target = models.ForeignKey(
         Budget, on_delete=models.CASCADE, related_name="transactions"
@@ -160,12 +150,12 @@ class Transaction(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="transactions",
+        related_name="services",
     )
     note = models.TextField(blank=True)
 
     class Meta:
-        db_table = "transactions"
+        db_table = "services"
         ordering = ("-date", "-timestamp_create")
 
     def __str__(self):
@@ -181,10 +171,6 @@ class Transaction(models.Model):
                 f"at {self.date}")
 
     def clean(self):
-        """
-        Ensure non-negative monetary fields
-        Check if transaction type conflicts with transaction type
-        """
         if self.category and self.type:
             if (
                     self.category.type == Category.Types.INCOME
@@ -192,7 +178,7 @@ class Transaction(models.Model):
             ):
                 raise ValidationError(
                     {
-                        "category": "Category type conflicts with transaction type."}
+                        "category": "Category type conflicts with transaction type.(INCOME)"}
                 )
             if (
                     self.category.type == Category.Types.EXPENSE
@@ -200,14 +186,9 @@ class Transaction(models.Model):
             ):
                 raise ValidationError(
                     {
-                        "category": "Category type conflicts with transaction type."}
+                        "category": "Category type conflicts with transaction type. (EXPENSE)"}
                 )
 
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
-        # try:
-        #     self.target.recalc()
-        # except Exception:
-        # will be Exeption logging
-        # pass

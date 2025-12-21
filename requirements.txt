@@ -1,3 +1,4 @@
+faker
 django
 django-environ
 django-extensions

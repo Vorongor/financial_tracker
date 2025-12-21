@@ -23,7 +23,7 @@
   {% if user_role %}
     <div
         class="d-flex justify-content-center flex-wrap gap-5 mt-3">
-    <button class="btn btn-outline-info"
+    <button class="btn btn-primary"
             data-bs-toggle="modal"
             data-bs-target="#transactionModal"
     >
@@ -31,7 +31,7 @@
     </button>
   {% endif %}
   {% if event.accessibility != "Private" and user_role in "Admin,Creator" %}
-    <button class="btn btn-outline-success"
+    <button class="btn btn-primary"
             data-bs-toggle="modal"
             data-bs-target="#userKeyModal">
       Add member
@@ -41,13 +41,13 @@
     <form method="post"
           action="{% url "events:event-leave" pk=event.id %}">
       {% csrf_token %}
-      <input class="btn btn-outline-warning"
+      <input class="btn btn-danger"
              type="submit"
              value="Leave event">
     </form>
   {% endif %}
   {% if can_delete_event %}
-    <a class="btn btn-outline-danger"
+    <a class="btn btn-danger"
        href="{% url "events:event-delete" pk=event.id %}">
       Delete event
     </a>

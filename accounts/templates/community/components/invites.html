@@ -21,7 +21,7 @@
         <form method="post"
               action="{% url 'approve-connect' invite.id %}">
           {% csrf_token %}
-          <button class="btn btn-outline-success">
+          <button class="btn btn-success">
             Approve
           </button>
         </form>
@@ -30,7 +30,7 @@
         <form method="post"
               action="{% url 'reject-connect' invite.id %}">
           {% csrf_token %}
-          <button class="btn btn-outline-danger">
+          <button class="btn btn-danger">
             Reject
           </button>
         </form>
@@ -39,7 +39,7 @@
         <form method="post"
               action="{% url 'block-connect' invite.id %}">
           {% csrf_token %}
-          <button class="btn btn-outline-danger">
+          <button class="btn btn-danger">
             Block
           </button>
         </form>

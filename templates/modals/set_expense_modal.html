@@ -1,0 +1,81 @@
+<div class="modal fade" id="setExpenseModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <form method="post" action="{% url 'set-expense-budget' %}"
+            class="bg-dark text-white">
+        {% csrf_token %}
+
+        <div class="modal-header">
+          <h5 class="modal-title">Set up expense</h5>
+          <button type="button" class="btn-close btn-close-white"
+                  data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body d-flex flex-column align-items-center
+justify-content-center g-5">
+          <div class="form-floating text-secondary mb-4 modal-form-field">
+            <input type="number"
+                   name="amount"
+                   class="form-control {% if form.amount.errors %}is-invalid{% endif %}"
+                   id="amountInput"
+                   value="{{ form.amount.value|default:'' }}"
+                   required>
+            <label for="amountInput">Amount</label>
+            {% for error in form.amount.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <div class="form-floating text-secondary mb-4 modal-form-field">
+            <select name="category"
+                    class="form-select {% if form.category.errors %}is-invalid{% endif %}"
+                    id="categorySelect">
+              <option value="" selected>None</option>
+              {% for category in categories_expense %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+              {% endfor %}
+            </select>
+            <label for="categorySelect">Income Category</label>
+            {% for error in form.category.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="form-floating text-secondary mb-4 modal-form-field">
+            <input type="text"
+                   name="note"
+                   class="form-control {% if form.note.errors %}is-invalid{% endif %}"
+                   id="noteInput"
+                   value="{{ form.note.value|default:'' }}"
+            >
+            <label for="noteInput">Comment</label>
+            {% for error in form.note.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <div class="form-floating text-secondary mb-4 modal-form-field">
+            <input type="date"
+                   name="date"
+                   class="form-control {% if form.date.errors %}is-invalid{% endif %}"
+                   id="dateInput"
+                   value="{{ form.date.value|default:'' }}"
+            >
+            <label for="dateInput">Date</label>
+            {% for error in form.date.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-outline-success">
+            Submit
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</div>

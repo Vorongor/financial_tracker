@@ -1,0 +1,74 @@
+<script>
+    // 1. Gauge Chart (Doughnut hack)
+    const gaugeCtx = document.getElementById('gaugeChart').getContext('2d');
+    new Chart(gaugeCtx, {
+        type: 'doughnut',
+        data: {
+            datasets: [{
+                data: [{{ analytics.percent }}, {{ 100|add:"-analytics.percent"|default:0 }}],
+                backgroundColor: ['{{ analytics.gauge_color }}', '#343a40'],
+                borderWidth: 0,
+                circumference: 180,
+                rotation: 270,
+                cutout: '85%'
+            }]
+        },
+        options: {aspectRatio: 1, plugins: {legend: {display: false}}}
+    });
+
+    // 2. Burndown Chart
+    const burnCtx = document.getElementById('burndownChart').getContext('2d');
+    new Chart(burnCtx, {
+        type: 'line',
+        data: {
+            labels: {{ analytics.labels|safe }},
+            datasets: [{
+                label: 'Balance Trend',
+                data: {{ analytics.data_points|safe }},
+                borderColor: '#0dcaf0',
+                backgroundColor: 'rgba(13, 202, 240, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            plugins: {legend: {display: false}},
+            scales: {
+                y: {grid: {color: '#444'}, ticks: {color: '#aaa'}},
+                x: {grid: {display: false}, ticks: {color: '#aaa'}}
+            }
+        }
+    });
+    // Status Pie Chart
+    const statusCtx = document.getElementById('statusPieChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'pie',
+        data: {
+            labels: {{ social_analytics.status_labels|safe }},
+            datasets: [{
+                data: {{ social_analytics.status_data|safe }},
+                backgroundColor: [
+                    '#198754',
+                    '#ffc107',
+                    '#dc3545',
+                    '#6c757d'
+                ],
+                borderWidth: 1,
+                borderColor: '#212529'
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#aaa',
+                        padding: 15,
+                        font: {size: 11}
+                    }
+                }
+            }
+        }
+    });
+</script>

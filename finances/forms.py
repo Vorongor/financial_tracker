@@ -3,7 +3,7 @@ from decimal import Decimal
 from django import forms
 from django.forms import ModelForm
 
-from finances.models import Budget, Transaction
+from finances.models import Budget, Transaction, Category
 
 
 class UpdateBudgetForm(forms.ModelForm):
@@ -65,9 +65,26 @@ class TransferCreateForm(forms.ModelForm):
 
 class TopUpBudgetForm(forms.Form):
     amount = forms.DecimalField(
-        min_value=Decimal("0.01"), max_digits=12, decimal_places=2, label="Amount"
+        min_value=Decimal("0.01"), max_digits=12, decimal_places=2,
+        label="Amount"
     )
-    note = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2}))
+    note = forms.CharField(required=False,
+                           widget=forms.Textarea(attrs={"rows": 2}))
+
+    date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(
+            attrs={
+                "type": "date",
+                "class": "form-control",
+            }
+        ),
+    )
+    category = forms.ModelChoiceField(
+        queryset=Category.objects.filter(type=Category.Types.INCOME),
+        required=False,
+        empty_label="Select Category (Optional)"
+    )
 
 
 class BudgetEditForm(ModelForm):
@@ -77,3 +94,37 @@ class BudgetEditForm(ModelForm):
             "planned_amount",
             "start_amount",
         )
+        widgets = {
+            'planned_amount': forms.NumberInput(
+                attrs={
+                    'class': 'form-control'}
+            ),
+            'start_amount': forms.NumberInput(
+                attrs={
+                    'class': 'form-control'}
+            ),
+        }
+
+
+class SetExpenseBudgetForm(forms.Form):
+    amount = forms.DecimalField(
+        min_value=Decimal("0.01"), max_digits=12, decimal_places=2,
+        label="Amount"
+    )
+    note = forms.CharField(required=False,
+                           widget=forms.Textarea(attrs={"rows": 2}))
+
+    date = forms.DateTimeField(
+        required=False,
+        widget=forms.DateTimeInput(
+            attrs={
+                "type": "date",
+                "class": "form-control",
+            }
+        ),
+    )
+    category = forms.ModelChoiceField(
+        queryset=Category.objects.filter(type=Category.Types.EXPENSE),
+        required=False,
+        empty_label="Select Category (Optional)"
+    )

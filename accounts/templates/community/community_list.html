@@ -18,7 +18,7 @@
       </ul>
     {% endif %}
     <button
-        class="btn btn-outline-primary d-inline-flex align-items-center gap-2"
+        class="btn btn-primary d-inline-flex align-items-center gap-2"
         data-bs-toggle="modal"
         data-bs-target="#userKeyModal">
       <svg width="32px" height="32px" viewBox="0 0 24 24" fill="currentColor"
@@ -52,7 +52,7 @@
     >
   </form>
   <div class="container d-flex flex-row justify-content-center gap-5">
-    <div class="col-12 col-md-6">
+    <div class="col-12 col-md-6" style="overflow: auto">
       {% if users %}
         {% include "community/components/users.htm" %}
       {% endif %}

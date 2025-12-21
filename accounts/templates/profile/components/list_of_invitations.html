@@ -4,7 +4,7 @@
   </h5>
   <ul class="d-flex flex-column gap-2 list-group">
     {% for connect in take_to_connect|slice:":2" %}
-      <li class="d-flex flex-row align-center justify-content-around list-group-item list-group-item-dark">
+      <li class="d-flex flex-row align-center justify-content-between list-group-item list-group-item-dark">
         <p class="text-dark text-center mb-0">
           Sent to:<strong> {{ connect.to_user.username }}</strong>
           - {{ connect.status }}
@@ -12,14 +12,14 @@
         <form method="post"
               action="{% url 'reject-connect' connect.id %}">
           {% csrf_token %}
-          <button class="btn btn-outline-danger">
-            Delete
+          <button class="btn btn-danger">
+            Refuse
           </button>
         </form>
       </li>
     {% endfor %}
     {% for invite in invite_to_connect|slice:":3" %}
-      <li class="d-flex flex-row align-items-center align-center justify-content-around list-group-item list-group-item-dark">
+      <li class="d-flex flex-row align-items-center align-center justify-content-between list-group-item list-group-item-dark">
         <p class="text-dark text-center mb-0">
           Receive from:<strong> {{ invite.from_user.username }}</strong>
           - {{ invite.status }}
@@ -27,21 +27,21 @@
         <form method="post"
               action="{% url 'approve-connect' invite.id %}">
           {% csrf_token %}
-          <button class="btn btn-outline-success">
+          <button class="btn btn-success">
             Approve
           </button>
         </form>
         <form method="post"
               action="{% url 'reject-connect' invite.id %}">
           {% csrf_token %}
-          <button class="btn btn-outline-danger">
+          <button class="btn btn-danger">
             Reject
           </button>
         </form>
         <form method="post"
               action="{% url 'reject-connect' invite.id %}">
           {% csrf_token %}
-          <button class="btn btn-outline-danger">
+          <button class="btn btn-danger">
             Block
           </button>
         </form>
