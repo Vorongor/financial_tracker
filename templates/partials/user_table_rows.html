@@ -15,8 +15,14 @@
           {% with other_person=connect.to_user %}{% endwith %}{% endif %}
 
         <tr>
-          <td><strong>{{ connect.from_user.username }}</strong>
-          <td>{{ connect.from_user.first_name }} {{ connect.from_user.last_name }}</td>
+
+            {% if connect.from_user == user %}
+              <td><strong>{{ connect.to_user.username }}</strong>
+              <td>{{ connect.to_user.first_name }} {{ connect.to_user.last_name }}</td>
+            {% else %}
+              <td><strong>{{ connect.from_user.username }}</strong>
+              <td>{{ connect.from_user.first_name }} {{ connect.from_user.last_name }}</td>
+            {% endif %}
           <td>{{ connect.status }}</td>
           <td>
             <div

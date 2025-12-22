@@ -175,14 +175,14 @@ class CommunityListView(LoginRequiredMixin, ListView):
             connections = [c for c in connections if c.status == status_filter]
 
         if query:
-            cur_query = query.lower()
+            query = query.lower()
             connections = [
                 con for con in connections
                 if (
-                    cur_query in con.from_user.username.lower()
-                    or cur_query in con.to_user.username.lower()
-                    or cur_query in con.from_user.first_name.lower()
-                    or cur_query in con.to_user.first_name.lower()
+                    query in con.from_user.username.lower()
+                    or query in con.to_user.username.lower()
+                    or query in con.from_user.first_name.lower()
+                    or query in con.to_user.first_name.lower()
                 )
             ]
 

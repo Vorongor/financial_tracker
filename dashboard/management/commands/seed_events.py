@@ -9,63 +9,60 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help_tag = ("Створює приватні події для кожного юзера "
-                "та 150 публічних подій")
+    help = ("Creates private events for each user "
+            "and 80 public events")
 
     def handle(self, *args, **kwargs):
-        fake = Faker(["uk_UA"])
+
+        fake = Faker(["en_US"])
         users = list(User.objects.all())
 
         if not users:
             self.stdout.write(
-                self.style.ERROR("Спочатку створи користувачів!"))
+                self.style.ERROR("Create users first!"))
             return
 
-        self.stdout.write("Починаємо генерацію подій...")
+        self.stdout.write("Starting event generation...")
 
         try:
             with transaction.atomic():
-                # --- 1. ПРИВАТНІ ПОДІЇ ---
-                # Для кожного користувача створюємо 1-4 приватні події
                 for user in users:
                     for _ in range(random.randint(1, 4)):
                         event = Event.objects.create(
-                            name=f"Особиста ціль: {fake.word().capitalize()}",
+                            name=f"Personal goal: {fake.word().capitalize()}",
                             description=fake.sentence(),
                             planned_amount=random.randint(1000, 50000),
-                            type=random.choice(Event.EventType.choices)[0],
+                            event_type=random.choice(Event.EventType.choices)[
+                                0],
                             status=random.choice(Event.EventStatus.choices)[0],
                             accessibility=Event.Accessibility.PRIVATE,
                             creator=user,
                             start_date=fake.date_this_year(),
                         )
-                        # Додаємо творця в учасники
                         EventMembership.objects.create(
                             event=event,
                             user=user,
                             role="Creator",
-                            # Використовуй значення з твоєї моделі Role
                             status="Accepted"
                         )
 
                 self.stdout.write(self.style.SUCCESS(
-                    f"Створено приватні події для {len(users)} юзерів."))
+                    f"Created private events for {len(users)} users."))
 
-                # --- 2. ПУБЛІЧНІ ПОДІЇ ---
+                # Generate Public Events
                 for i in range(80):
                     creator = random.choice(users)
                     event = Event.objects.create(
-                        name=f"Публічний збір: {fake.bs().capitalize()}",
+                        name=f"Public collection: {fake.bs().capitalize()}",
                         description=fake.paragraph(nb_sentences=2),
                         planned_amount=random.randint(50000, 500000),
-                        type=random.choice(Event.EventType.choices)[0],
+                        event_type=random.choice(Event.EventType.choices)[0],
                         status=random.choice(Event.EventStatus.choices)[0],
                         accessibility=Event.Accessibility.PUBLIC,
                         creator=creator,
                         start_date=fake.date_this_year(),
                     )
 
-                    # Додаємо творця
                     EventMembership.objects.create(
                         event=event,
                         user=creator,
@@ -73,9 +70,9 @@ class Command(BaseCommand):
                         status="Accepted"
                     )
 
-                    # Додаємо від 5 до 15 випадкових учасників
                     num_members = random.randint(5, 15)
-                    selected_users = random.sample(users, num_members)
+                    selected_users = random.sample(users, min(len(users),
+                                                              num_members))
                     for member in selected_users:
                         if member != creator:
                             EventMembership.objects.create(
@@ -86,7 +83,7 @@ class Command(BaseCommand):
                             )
 
                 self.stdout.write(self.style.SUCCESS(
-                    "Успішно створено 80 публічних подій з учасниками!"))
+                    "Successfully created 80 public events with participants!"))
 
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f"Помилка: {e}"))
+            self.stdout.write(self.style.ERROR(f"Error: {e}"))

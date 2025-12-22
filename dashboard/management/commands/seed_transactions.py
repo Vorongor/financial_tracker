@@ -32,9 +32,9 @@ class Command(BaseCommand):
         event_budgets = {b.object_id: b for b in
                          Budget.objects.filter(content_type=event_type)}
 
-        income_cats = list(Category.objects.filter(type=Category.Types.INCOME))
+        income_cats = list(Category.objects.filter(category_type=Category.Types.INCOME))
         expense_cats = list(
-            Category.objects.filter(type=Category.Types.EXPENSE))
+            Category.objects.filter(category_type=Category.Types.EXPENSE))
 
         now = timezone.now()
         half_year_ago = 180

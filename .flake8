@@ -9,3 +9,6 @@ exclude =
     .venv
     seed_*
     *seed*
+    setup_dev_db*
+    *setup_dev_db
+    *setup_dev_db*
