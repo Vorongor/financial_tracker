@@ -6,7 +6,9 @@ from finances.views import (
     TransferCreateView,
     TopUpBudgetView,
     TransactionListView,
-    CategoryOptionsView, SetExpenseBudgetView,
+    CategoryOptionsView,
+    SetExpenseBudgetView,
+    TransactionDeleteView,
 )
 
 urlpatterns = [
@@ -40,4 +42,9 @@ urlpatterns = [
         CategoryOptionsView.as_view(),
         name="ajax_get_categories"
     ),
+    path(
+        "delete-transaction/<int:pk>/",
+        TransactionDeleteView.as_view(),
+        name="transaction_delete",
+    )
 ]

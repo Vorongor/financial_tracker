@@ -3,8 +3,8 @@
     <td class="small">{{ transaction.date|date:"d M Y H:i" }}</td>
     <td>
         <span
-            class="badge {% if transaction.type == 'Income' %}bg-success{% else %}bg-danger{% endif %}">
-            {{ transaction.type }}
+            class="badge {% if transaction.transaction_type == 'Income' %}bg-success{% else %}bg-danger{% endif %}">
+            {{ transaction.transaction_type }}
         </span>
     </td>
     <td>
@@ -20,13 +20,14 @@
         -{% endif %}{{ transaction.amount }}
     </td>
     <td class="text-end">
-      <div class="btn-group btn-group-sm d-flex flex-row gap-2">
-        <button class="btn btn-outline-info" title="Edit">
-          <i class="bi bi-pencil"></i> Edit
-        </button>
-        <button class="btn btn-outline-danger" title="Delete">
-          <i class="bi bi-trash"></i> Delete
-        </button>
+      <div class="btn-group btn-group-sm">
+        <form method="post"
+              action="{% url "transaction_delete" pk=transaction.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline-danger" title="Delete">
+            <i class="bi bi-trash"></i> Delete
+          </button>
+        </form>
       </div>
     </td>
   </tr>

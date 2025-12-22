@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
@@ -9,7 +10,7 @@ from django.views import View
 from django.views.generic import (
     TemplateView,
     UpdateView,
-    ListView,
+    ListView, DetailView, DeleteView,
 )
 
 from finances.models import Budget, Transaction, Category
@@ -179,4 +180,14 @@ class CategoryOptionsView(LoginRequiredMixin, View):
             request,
             "partials/categories_to_form.html",
             {"categories": categories}
+        )
+
+
+class TransactionDeleteView(LoginRequiredMixin, DeleteView):
+    model = Transaction
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "transfer-history",
+            kwargs={"target": "user", "pk": self.request.user.pk}
         )
