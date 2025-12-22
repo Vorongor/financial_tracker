@@ -4,10 +4,14 @@ from addition_info.choise_models import Role, Status
 from config import settings
 from events.models import EventMembership, Event
 
+
 class EventInvitationService:
     @classmethod
-    def create_event_invitation(cls, list_of_connects: list[int],
-                            event_id: int) -> None:
+    def create_event_invitation(
+            cls,
+            list_of_connects: list[int],
+            event_id: int
+    ) -> None:
         if not list_of_connects:
             return
 

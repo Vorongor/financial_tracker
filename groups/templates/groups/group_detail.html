@@ -3,89 +3,79 @@
 
   {% if group %}
     <div class="container py-4">
-      <div class="row g-4 d-flex justify-content-center gap-3">
 
-        <!-- LEFT SIDE (7) -->
-        <div class="col-lg-7">
+      <div class="card bg-dark text-white shadow-sm mb-4">
+        {% include "groups/components/detail_top.html" %}
+      </div>
 
-          <!-- Group header -->
-          <div class="card bg-dark text-white shadow-sm mb-4">
-            {% include "groups/components/detail_top.html" %}
+      <div class="card bg-dark text-white shadow-sm mb-4">
+        {% include "groups/components/detail_info.html" %}
+      </div>
+
+      <div class="card bg-dark text-white shadow-sm mb-4">
+        <div class="card-body">
+
+          <form method="post"
+                action="{% url "groups:create-inside-event" group_id=group.id %}">
+            {% csrf_token %}
+            <input type="submit" class="btn btn-primary"
+                   value="Create Event">
+          </form>
+          {% if related_events %}
+            <h3>Relate events</h3>
+            <ul>
+              {% for event in related_events %}
+                <li>
+                  <a href="{% url "events:event-detail" pk=event.event.id %}">
+                    {{ event.get_related_events }}
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card bg-dark text-white shadow-sm mb-4">
+        <div class="card-body">
+          <h5 class="text-secondary mb-2">
+            Statistics (coming soon)
+          </h5>
+
+          <div class="text-white-50 small">
+            Charts for income / expenses / trends will be displayed here.
           </div>
 
-          <!-- Group details -->
-          <div class="card bg-dark text-white shadow-sm mb-4">
-            {% include "groups/components/detail_info.html" %}
-          </div>
-
-          <!-- Event Creation -->
-          <div class="card bg-dark text-white shadow-sm mb-4">
-            <div class="card-body">
-
-              <form method="post"
-                    action="{% url "groups:create-inside-event" group_id=group.id %}">
-                {% csrf_token %}
-                <input type="submit" class="btn btn-primary"
-                       value="Create Event">
-              </form>
-              {% if related_events %}
-                <h3>Relate events</h3>
-                <ul>
-                  {% for event in related_events %}
-                    <li>
-                      <a href="{% url "events:event-detail" pk=event.event.id %}">
-                      {{ event.get_related_events }}
-                      </a>
-                    </li>
-                  {% endfor %}
-                </ul>
-              {% endif %}
-            </div>
-          </div>
-
-          <!--Charts -->
-          <div class="card bg-dark text-white shadow-sm mb-4">
-            <div class="card-body">
-              <h5 class="text-secondary mb-2">
-                Statistics (coming soon)
-              </h5>
-
-              <div class="text-white-50 small">
-                Charts for income / expenses / trends will be displayed here.
-              </div>
-
-              <div class="d-flex justify-content-center align-items-center"
-                   style="height: 160px;">
+          <div class="d-flex justify-content-center align-items-center"
+               style="height: 160px;">
                 <span class="text-secondary fst-italic">
                   Graph placeholder
                 </span>
-              </div>
-
-            </div>
           </div>
+
+        </div>
+      </div>
+
+
+      <div class="d-flex justify-content-center gap-2">
+        <div class="card bg-dark text-white shadow-sm flex-grow-1"
+        style="overflow: auto; max-height: 720px">
+          {% include "groups/components/group_transactions.html" %}
         </div>
 
-        <!-- RIGHT SIDE (3) -->
-        <div class="col-lg-3">
-
-          <!-- Transactions -->
-          <div class="card bg-dark text-white shadow-sm mb-4">
-            {% include "groups/components/group_transactions.html" %}
-          </div>
-
-          <!-- Members -->
-          <div class="card bg-dark text-white shadow-sm mb-4">
-            {% include "groups/components/group_members.html" %}
-          </div>
-
-          <!-- Connections -->
-          <div class="card bg-dark text-white shadow-sm">
-            {% include "groups/components/group_connections.html" %}
-          </div>
+        <div class="card bg-dark text-white shadow-sm flex-grow-1"
+        style="overflow: auto; max-height: 720px">
+          {% include "groups/components/group_members.html" %}
         </div>
 
+        <div class="card bg-dark text-white shadow-sm flex-grow-1"
+        style="overflow: auto; max-height: 720px">
+          {% include "groups/components/group_connections.html" %}
+        </div>
       </div>
     </div>
+
+
 
     {% include "modals/user_key_modal.html" %}
     {% include "modals/transaction_modal.html" %}

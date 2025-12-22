@@ -22,6 +22,61 @@
       <p>Total expenses: {{ current_budget.total_expenses }}</p>
     {% endif %}
 
+    <canvas id="myBarChart" style="max-height: 360px;"></canvas>
+
+    <script>
+        const barCtx = document.getElementById("myBarChart").getContext("2d");
+        new Chart(barCtx, {
+            type: "bar",
+            data: {
+                labels: {{ chart_data.labels|safe }},
+                datasets: [
+                    {
+                        label: "Income",
+                        data: {{ chart_data.incomes|safe }},
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                        borderRadius: 10,
+                    },
+
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: true,
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                return Math.abs(value);
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                let label = context.dataset.label || "";
+                                if (label) {
+                                    label += ": ";
+                                }
+                                label += Math.abs(context.parsed.y)
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
 
   {% endif %}
 </div>

@@ -18,7 +18,8 @@ class GroupFormsTest(TestCase):
         )
 
     @patch(
-        'accounts.services.receive_connection.UserConnectionsService.get_user_connections')
+        "accounts.services.receive_connection"
+        ".UserConnectionsService.get_user_connections")
     def test_group_create_form_participants_initialization(
             self,
             mock_connections
@@ -30,15 +31,15 @@ class GroupFormsTest(TestCase):
         mock_conn.other_user.return_value = mock_friend
         mock_connections.return_value = [mock_conn]
         form = GroupCreateForm(user=self.user)
-        choices = form.fields['participants'].choices
+        choices = form.fields["participants"].choices
         self.assertEqual(len(choices), 1)
         self.assertEqual(choices[0], (99, "friend_user"))
 
     def test_group_create_form_permanent_invalid_dates(self):
         form_data = {
-            'name': 'Permanent Group',
-            'state': Group.States.PERMANENT,
-            'start_date': date.today(),
+            "name": "Permanent Group",
+            "state": Group.States.PERMANENT,
+            "start_date": date.today(),
         }
         form = GroupCreateForm(data=form_data, user=self.user)
         self.assertFalse(form.is_valid())
@@ -49,7 +50,7 @@ class GroupFormsTest(TestCase):
             "start_date": date.today() + timedelta(days=5),
             "end_date": date.today(),
             "planned_amount": 100.00,
-            "type": "Conference",
+            "event_type": "Conference",
             "status": "Planned"
         }
         form = GroupEventCreateForm(data=form_data, user=self.user)
@@ -72,7 +73,7 @@ class GroupFormsTest(TestCase):
             "start_date": date.today(),
             "end_date": date.today() + timedelta(days=1),
             "planned_amount": 500.00,
-            "type": Event.EventType.SAVINGS,
+            "event_type": Event.EventType.SAVINGS,
             "status": Event.EventStatus.PLANNED
         }
         form = GroupEventCreateForm(data=form_data, user=self.user)

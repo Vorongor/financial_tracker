@@ -23,19 +23,19 @@ class TestEventPrivateCreateForm(TestCase):
         form = EventPrivateCreateForm(user=self.user)
 
         expected_choices = [(99, "friend_user")]
-        self.assertEqual(form.fields['participants'].choices, expected_choices)
+        self.assertEqual(form.fields["participants"].choices, expected_choices)
 
     @patch("events.views.UserConnectionsService.get_user_connections",
            return_value=[])
     def test_clean_dates_invalid(self, _):
         data = {
-            'start_date': '2023-10-10',
-            'end_date': '2023-10-01',
-            'planned_amount': 100,
-            'name': 'Test Event',
-            'type': Event.EventType.SAVINGS,
-            'accessibility': Event.Accessibility.PRIVATE,
-            'status': Event.EventStatus.PLANNED
+            "start_date": "2023-10-10",
+            "end_date": "2023-10-01",
+            "planned_amount": 100,
+            "name": "Test Event",
+            "type": Event.EventType.SAVINGS,
+            "accessibility": Event.Accessibility.PRIVATE,
+            "status": Event.EventStatus.PLANNED
         }
         form = EventPrivateCreateForm(data=data, user=self.user)
 
@@ -47,13 +47,13 @@ class TestEventPrivateCreateForm(TestCase):
            return_value=[])
     def test_clean_planned_amount_negative(self, _):
         data = {
-            'start_date': '2023-10-01',
-            'end_date': '2023-10-10',
-            'planned_amount': -10.50,
-            'name': 'Test Event',
-            'type': Event.EventType.SAVINGS,
-            'accessibility': Event.Accessibility.PRIVATE,
-            'status': Event.EventStatus.PLANNED
+            "start_date": "2023-10-01",
+            "end_date": "2023-10-10",
+            "planned_amount": -10.50,
+            "name": "Test Event",
+            "type": Event.EventType.SAVINGS,
+            "accessibility": Event.Accessibility.PRIVATE,
+            "status": Event.EventStatus.PLANNED
         }
         form = EventPrivateCreateForm(data=data, user=self.user)
 
@@ -65,13 +65,13 @@ class TestEventPrivateCreateForm(TestCase):
            return_value=[])
     def test_clean_valid_data(self, _):
         data = {
-            'start_date': '2023-10-01',
-            'end_date': '2023-10-10',
-            'planned_amount': 500,
-            'name': 'Valid Event',
-            'type': Event.EventType.SAVINGS,
-            'accessibility': Event.Accessibility.PRIVATE,
-            'status': Event.EventStatus.PLANNED
+            "start_date": "2023-10-01",
+            "end_date": "2023-10-10",
+            "planned_amount": 500,
+            "name": "Valid Event",
+            "event_type": Event.EventType.SAVINGS,
+            "accessibility": Event.Accessibility.PRIVATE,
+            "status": Event.EventStatus.PLANNED
         }
 
         form = EventPrivateCreateForm(data=data, user=self.user)

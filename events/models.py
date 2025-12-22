@@ -35,7 +35,7 @@ class Event(models.Model):
         decimal_places=2,
         default=0
     )
-    type = models.CharField(
+    event_type = models.CharField(
         max_length=20,
         choices=EventType.choices,
         default=EventType.SAVINGS,
@@ -83,8 +83,10 @@ class Event(models.Model):
         Expects at most one Budget due to unique constraint in Budget.meta.
         """
         ct = ContentType.objects.get_for_model(self)
-        return Budget.objects.filter(content_type=ct,
-                                     object_id=self.id).first()
+        return Budget.objects.filter(
+            content_type=ct,
+            object_id=self.id
+        ).first()
 
 
 class EventMembership(models.Model):

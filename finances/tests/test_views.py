@@ -25,20 +25,20 @@ class FinancesViewsTest(TestCase):
 
         self.income_cat = Category.objects.create(
             name="Salary",
-            type=Category.Types.INCOME
+            category_type=Category.Types.INCOME
         )
         self.expense_cat = Category.objects.create(
             name="Food",
-            type=Category.Types.EXPENSE
+            category_type=Category.Types.EXPENSE
         )
 
         Category.objects.create(
             name="Spent on donate",
-            type=Category.Types.EXPENSE
+            category_type=Category.Types.EXPENSE
         )
         Category.objects.create(
             name="Receive from saved",
-            type=Category.Types.INCOME
+            category_type=Category.Types.INCOME
         )
 
         self.client.login(
@@ -52,9 +52,9 @@ class FinancesViewsTest(TestCase):
     def test_top_up_budget_view_post(self):
         url = reverse("budget-top-up")
         data = {
-            'amount': '500.00',
-            'category': self.income_cat.id,
-            'note': 'Test Top Up'
+            "amount": "500.00",
+            "category": self.income_cat.id,
+            "note": "Test Top Up"
         }
         response = self.client.post(
             url,
@@ -85,7 +85,7 @@ class FinancesViewsTest(TestCase):
         )
         data = {
             "amount": "200.00",
-            "type": "Expense",
+            "transaction_type": "Expense",
             "category": self.expense_cat.id
         }
 
@@ -112,7 +112,7 @@ class FinancesViewsTest(TestCase):
 
         url = reverse(
             "transfer-history",
-            kwargs={'target': 'user', 'pk': self.user.id}
+            kwargs={"target": "user", "pk": self.user.id}
         )
 
         response = self.client.get(url)
@@ -121,7 +121,7 @@ class FinancesViewsTest(TestCase):
             "transactions/transaction_list.html"
         )
 
-        response = self.client.get(url, HTTP_HX_REQUEST='true')
+        response = self.client.get(url, HTTP_HX_REQUEST="true")
         self.assertTemplateUsed(
             response,
             "partials/transaction_table_rows.html"
@@ -129,22 +129,22 @@ class FinancesViewsTest(TestCase):
 
         response = self.client.get(
             f"{url}?search=UniqueNote123",
-            HTTP_HX_REQUEST='true'
+            HTTP_HX_REQUEST="true"
         )
 
         response = self.client.get(
             f"{url}?search=Nothing",
-            HTTP_HX_REQUEST='true'
+            HTTP_HX_REQUEST="true"
         )
         self.assertNotContains(response, "UniqueNote123")
 
     def test_category_options_view_filter(self):
         url = reverse("ajax_get_categories")
 
-        response = self.client.get(f"{url}?type=Income")
+        response = self.client.get(f"{url}?transaction_type=Income")
         self.assertContains(response, self.income_cat.name)
         self.assertNotContains(response, self.expense_cat.name)
 
-        response = self.client.get(f"{url}?type=Expense")
+        response = self.client.get(f"{url}?transaction_type=Expense")
         self.assertContains(response, self.expense_cat.name)
         self.assertNotContains(response, self.income_cat.name)

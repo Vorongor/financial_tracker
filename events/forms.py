@@ -18,7 +18,7 @@ class EventPrivateCreateForm(forms.ModelForm):
             "start_date",
             "end_date",
             "planned_amount",
-            "type",
+            "event_type",
             "accessibility",
             "status",
         ]
@@ -43,7 +43,7 @@ class EventPrivateCreateForm(forms.ModelForm):
             "planned_amount": forms.NumberInput(
                 attrs={"class": "form-control", "min": 0, "step": "0.01"}
             ),
-            "type": forms.Select(attrs={"class": "form-select"}),
+            "event_type": forms.Select(attrs={"class": "form-select"}),
             "status": forms.Select(attrs={"class": "form-select"}),
             "accessibility": forms.Select(
                 attrs={"class": "form-select"},
@@ -100,7 +100,7 @@ class EventEditForm(ModelForm):
             "start_date",
             "end_date",
             "status",
-            "type",
+            "event_type",
         )
         widgets = {
             "name": forms.TextInput(
@@ -119,7 +119,7 @@ class EventEditForm(ModelForm):
             "end_date": forms.DateInput(
                 attrs={"class": "form-control", "type": "date"}
             ),
-            "type": forms.Select(attrs={"class": "form-select"}),
+            "event_type": forms.Select(attrs={"class": "form-select"}),
             "status": forms.Select(attrs={"class": "form-select"}),
 
         }

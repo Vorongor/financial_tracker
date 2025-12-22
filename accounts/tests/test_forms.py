@@ -4,6 +4,7 @@ from accounts.forms import UserRegisterForm, UserUpdateForm
 
 User = get_user_model()
 
+
 class UserRegisterFormTest(TestCase):
     def setUp(self):
         self.existing_user = User.objects.create_user(
@@ -36,6 +37,7 @@ class UserRegisterFormTest(TestCase):
         data = {"salary": -100}
         form = UserRegisterForm(data=data)
         self.assertIn("salary", form.errors)
+
 
 class UserUpdateFormTest(TestCase):
     def test_fields_present_in_update_form(self):

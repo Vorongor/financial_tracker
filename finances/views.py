@@ -136,13 +136,13 @@ class TransactionListView(LoginRequiredMixin, ListView):
         search = self.request.GET.get("search")
         if search:
             queryset = queryset.filter(
-                Q(note__icontains=search) |
-                Q(category__name__icontains=search)
+                Q(note__icontains=search)
+                | Q(category__name__icontains=search)
             ).distinct()
 
         t_type = self.request.GET.get("type")
         if t_type in [Transaction.Types.INCOME, Transaction.Types.EXPENSE]:
-            queryset = queryset.filter(type=t_type)
+            queryset = queryset.filter(transaction_type=t_type)
 
         date_from = self.request.GET.get("date_from")
         if date_from:
@@ -164,16 +164,19 @@ class TransactionListView(LoginRequiredMixin, ListView):
 
 class CategoryOptionsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        transaction_type = kwargs.get('type') or request.GET.get('type')
+        category_type = (kwargs.get("transaction_type")
+                         or request.GET.get("transaction_type"))
 
         categories = Category.objects.filter(is_active=True)
 
-        if transaction_type:
-            categories = categories.filter(type=transaction_type).order_by(
-                'order_index', 'name')
+        if category_type:
+            categories = categories.filter(
+                category_type=category_type
+            ).order_by(
+                "order_index", "name")
 
         return render(
             request,
             "partials/categories_to_form.html",
-            {'categories': categories}
+            {"categories": categories}
         )

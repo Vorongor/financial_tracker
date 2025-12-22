@@ -1,0 +1,92 @@
+<div class="table-responsive">
+  <table class="table table-hover align-middle">
+    <thead class="table-light">
+    <tr>
+      <th>User</th>
+      <th>Full Name</th>
+      <th>Status</th>
+      <th>Status / Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for connect in user_connections %}
+      {% with other_person=connect.from_user|default:connect.to_user %}
+        {% if other_person.id == user.id %}
+          {% with other_person=connect.to_user %}{% endwith %}{% endif %}
+
+        <tr>
+          <td><strong>{{ connect.from_user.username }}</strong>
+          <td>{{ connect.from_user.first_name }} {{ connect.from_user.last_name }}</td>
+          <td>{{ connect.status }}</td>
+          <td>
+            <div
+                class="btn-group btn-group-sm d-flex justify-content-center align-items-center gap-2">
+              {% if connect.status == 'Pending' %}
+                {% if connect.to_user == user %}
+                  <form method="post"
+                        action="{% url 'approve-connect' connect.id %}">{% csrf_token %}
+                    <button class="btn btn-success">Approve</button>
+                  </form>
+                  <form method="post"
+                        action="{% url 'reject-connect' connect.id %}">{% csrf_token %}
+                    <button class="btn btn-outline-danger">Reject</button>
+                  </form>
+                  <form method="post"
+                        action="{% url 'block-connect' connect.id %}">{% csrf_token %}
+                    <button class="btn btn-danger">Block</button>
+                  </form>
+                {% else %}
+                  <form method="post"
+                        action="{% url 'reject-connect' connect.id %}">{% csrf_token %}
+                    <button class="btn btn-warning">Cancel</button>
+                  </form>
+                {% endif %}
+
+              {% elif connect.status == 'Accepted' %}
+                <form method="post"
+                      action="{% url 'reject-connect' connect.id %}">{% csrf_token %}
+                  <button class="btn btn-outline-danger">Delete</button>
+                </form>
+                <form method="post"
+                      action="{% url 'block-connect' connect.id %}">{% csrf_token %}
+                  <button class="btn btn-danger">Block</button>
+                </form>
+
+              {% elif connect.status == 'Blocked' %}
+                <form method="post"
+                      action="{% url 'reject-connect' connect.id %}">{% csrf_token %}
+                  <button class="btn btn-outline-danger">Delete</button>
+                </form>
+                <form method="post"
+                      action="{% url 'unblock-connect' connect.id %}">{% csrf_token %}
+                  <button class="btn btn-warning">Unblock</button>
+                </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+      {% endwith %}
+    {% endfor %}
+
+    {% for other_user in other_users %}
+      <tr>
+        <td><strong>{{ other_user.username }}</strong></td>
+        <td>{{ other_user.first_name }} {{ other_user.last_name }}</td>
+        <td>No connect</td>
+        <td>
+          <form method="post" action="{% url 'user-connect' other_user.id %}">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-primary">Add Contact</button>
+          </form>
+        </td>
+      </tr>
+    {% empty %}
+      {% if not user_connections %}
+        <tr>
+          <td colspan="3" class="text-center text-muted">No users found.</td>
+        </tr>
+      {% endif %}
+    {% endfor %}
+    </tbody>
+  </table>
+</div>

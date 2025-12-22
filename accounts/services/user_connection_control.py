@@ -6,6 +6,7 @@ from accounts.models import UserConnection
 
 User = get_user_model()
 
+
 class UserInvitationService:
     @classmethod
     def invite_user_to_connect(cls, sender: User, recipient: User) -> None:

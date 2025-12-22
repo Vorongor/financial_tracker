@@ -14,6 +14,7 @@ from django.views.generic import (
 
 from accounts.services.receive_connection import UserConnectionsService
 from addition_info.choise_models import Status, Role
+from dashboard.services.group_stats import GroupStatsService
 from events.models import Event
 from finances.custom_mixins import SuccessUrlFromNextMixin
 from finances.forms import TransferCreateForm, BudgetEditForm
@@ -83,7 +84,7 @@ class GroupDetailView(LoginRequiredMixin, SuccessUrlFromNextMixin, DetailView):
 
         members_qs = GroupMembership.objects.filter(
             group=group
-        ).select_related('user')
+        ).select_related("user")
 
         member_ids = set(members_qs.values_list("user_id", flat=True))
 
@@ -109,13 +110,16 @@ class GroupDetailView(LoginRequiredMixin, SuccessUrlFromNextMixin, DetailView):
             context["current_budget"] = budget.get_budget_data()
             context[
                 "transaction_history"] = budget.transactions.select_related(
-                'category', 'payer'
+                "category", "payer"
             ).all()
         except AttributeError:
             context["current_budget"] = None
             context["transaction_history"] = []
 
         delete_permission = "Creator" if group.creator_id else "Admin"
+        bar_cart_data = GroupStatsService.get_bar_chart_data(
+            pk=group.id
+        )
 
         context.update({
             "related_events": GroupEventService.get_events_for_group(
@@ -128,6 +132,7 @@ class GroupDetailView(LoginRequiredMixin, SuccessUrlFromNextMixin, DetailView):
             "user_role": user_role,
             "connects": potential_invites,
             "members": members_qs,
+            "chart_data": bar_cart_data,
         })
 
         return context

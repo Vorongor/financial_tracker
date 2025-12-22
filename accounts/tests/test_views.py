@@ -9,11 +9,11 @@ User = get_user_model()
 class AccountsViewTest(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = (User.objects.create_user
-            (
-            username="testuser",
-            password="password123"
-        )
+        self.user = (
+            User.objects.create_user(
+                username="testuser",
+                password="password123"
+            )
         )
         self.other_user = User.objects.create_user(
             username="other",
@@ -50,7 +50,7 @@ class AccountsViewTest(TestCase):
             status="Accepted"
         )
         response = self.client.get(reverse("community-list"))
-        users_in_list = response.context["users"]
+        users_in_list = response.context["user_connections"]
         self.assertNotIn(self.other_user, users_in_list)
 
 

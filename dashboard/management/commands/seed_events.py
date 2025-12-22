@@ -9,10 +9,11 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = "Створює приватні події для кожного юзера та 150 публічних подій"
+    help_tag = ("Створює приватні події для кожного юзера "
+                "та 150 публічних подій")
 
     def handle(self, *args, **kwargs):
-        fake = Faker(['uk_UA'])
+        fake = Faker(["uk_UA"])
         users = list(User.objects.all())
 
         if not users:

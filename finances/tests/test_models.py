@@ -10,8 +10,10 @@ User = get_user_model()
 
 class FinancesModelTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="testuser",
-                                             password="1Qazcde3")
+        self.user = User.objects.create_user(
+            username="testuser",
+            password="1Qazcde3"
+        )
         self.user_ct = ContentType.objects.get_for_model(User)
         self.budget = Budget.objects.get(
             content_type=self.user_ct,
@@ -21,17 +23,17 @@ class FinancesModelTest(TestCase):
         self.budget.save()
         self.income_cat = Category.objects.create(
             name="Salary",
-            type=Category.Types.INCOME
+            category_type=Category.Types.INCOME
         )
         self.expense_cat = Category.objects.create(
             name="Food",
-            type=Category.Types.EXPENSE
+            category_type=Category.Types.EXPENSE
         )
 
     def test_budget_recalc_logic(self):
         Transaction.objects.create(
             amount=Decimal("500.00"),
-            type=Transaction.Types.INCOME,
+            transaction_type=Transaction.Types.INCOME,
             target=self.budget,
             payer=self.user,
             category=self.income_cat
@@ -39,7 +41,7 @@ class FinancesModelTest(TestCase):
 
         Transaction.objects.create(
             amount=Decimal("200.00"),
-            type=Transaction.Types.EXPENSE,
+            transaction_type=Transaction.Types.EXPENSE,
             target=self.budget,
             payer=self.user,
             category=self.expense_cat
@@ -47,7 +49,7 @@ class FinancesModelTest(TestCase):
 
         Transaction.objects.create(
             amount=Decimal("400.00"),
-            type=Transaction.Types.INCOME,
+            transaction_type=Transaction.Types.INCOME,
             target=self.budget,
             payer=self.user,
             category=self.income_cat
@@ -67,7 +69,7 @@ class FinancesModelTest(TestCase):
     def test_transaction_category_mismatch_income(self):
         transaction_ex = Transaction(
             amount=Decimal("100.00"),
-            type=Transaction.Types.INCOME,
+            transaction_type=Transaction.Types.INCOME,
             target=self.budget,
             payer=self.user,
             category=self.expense_cat  # Помилка тут
@@ -81,7 +83,7 @@ class FinancesModelTest(TestCase):
     def test_transaction_category_mismatch_expense(self):
         transaction_ex = Transaction(
             amount=Decimal("50.00"),
-            type=Transaction.Types.EXPENSE,
+            transaction_type=Transaction.Types.EXPENSE,
             target=self.budget,
             payer=self.user,
             category=self.income_cat  # Помилка тут
@@ -92,7 +94,7 @@ class FinancesModelTest(TestCase):
     def test_transaction_min_amount_validator(self):
         transaction_ex = Transaction(
             amount=Decimal("0.00"),
-            type=Transaction.Types.INCOME,
+            transaction_type=Transaction.Types.INCOME,
             target=self.budget,
             payer=self.user
         )

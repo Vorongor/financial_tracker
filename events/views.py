@@ -99,7 +99,7 @@ class EventDetailView(LoginRequiredMixin, DetailView):
 
         members_qs = EventMembership.objects.filter(
             event=event
-        ).select_related('user')
+        ).select_related("user")
 
         user_membership = next((
             member
@@ -119,21 +119,21 @@ class EventDetailView(LoginRequiredMixin, DetailView):
             other_user = connect.other_user(user)
             if other_user.id not in member_ids:
                 potential_invites.append(other_user)
-
+        delete_pos = ((event.creator_id == user.id)
+                      or (not event.creator and user_role == "Admin"))
         try:
             budget = event.budget
             context["current_budget"] = budget.get_budget_data()
             context[
                 "transaction_history"] = budget.transactions.select_related(
-                'category', 'payer'
+                "category", "payer"
             ).all()
         except AttributeError:
             context["current_budget"] = None
             context["transaction_history"] = []
 
         context.update({
-            "can_delete_event": (event.creator_id == user.id) or (
-                    not event.creator and user_role == "Admin"),
+            "can_delete_event": delete_pos,
             "transaction_form": TransferCreateForm(),
             "content_type": "event",
             "object_id": event.id,
@@ -145,7 +145,7 @@ class EventDetailView(LoginRequiredMixin, DetailView):
         )
         context["social_analytics"] = EventAnalyticsService.get_social_stats(
             event, budget)
-        if event.type == Event.Accessibility.PRIVATE:
+        if event.accessibility == Event.Accessibility.PRIVATE:
             context["connects"] = []
             context["members"] = []
         else:

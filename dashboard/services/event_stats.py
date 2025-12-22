@@ -50,20 +50,20 @@ class EventAnalyticsService:
         leaderboard = []
         if budget:
             leaderboard = (
-                budget.transactions.filter(type="Income")
-                .values('payer__username', 'payer__first_name',
-                        'payer__last_name')
-                .annotate(total_contributed=Sum('amount'))
-                .order_by('-total_contributed')[:5]
+                budget.transactions.filter(transaction_type="Income")
+                .values("payer__username", "payer__first_name",
+                        "payer__last_name")
+                .annotate(total_contributed=Sum("amount"))
+                .order_by("-total_contributed")[:5]
             )
 
         status_counts = (
-            event.memberships.values('role')
-            .annotate(count=Count('id'))
+            event.memberships.values("role")
+            .annotate(count=Count("id"))
         )
 
-        status_labels = [s['role'] for s in status_counts]
-        status_data = [s['count'] for s in status_counts]
+        status_labels = [s["role"] for s in status_counts]
+        status_data = [s["count"] for s in status_counts]
 
         return {
             "leaderboard": leaderboard,

@@ -9,7 +9,7 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = "Генерує випадкові зв'язки (дружбу) між користувачами"
+    help_tag = "Генерує випадкові зв'язки (дружбу) між користувачами"
 
     def handle(self, *args, **kwargs):
         users = list(User.objects.all())
@@ -62,4 +62,5 @@ class Command(BaseCommand):
                 f"Успішно створено {len(connections_to_create)} зв'язків!"))
         except IntegrityError:
             self.stdout.write(self.style.ERROR(
-                "Помилка: Спроба створити дублікати в БД. Перевір унікальні обмеження моделі."))
+                "Помилка: Спроба створити дублікати в БД. "
+                "Перевір унікальні обмеження моделі."))

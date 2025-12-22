@@ -8,15 +8,17 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = "Generates 120 test users to validate the system"
+    help_tag = "Generates 120 test users to validate the system"
 
     def handle(self, *args, **kwargs):
-        fake = Faker(['en_US'])
+        fake = Faker(["en_US"])
 
         jobs = [
-            "Software Engineer", "Project Manager", "Designer", "Data Analyst",
+            "Software Engineer", "Project Manager",
+            "Designer", "Data Analyst",
             "Builder", "Mechanic", "Military Servant", "Marketing Specialist",
-            "Sales Manager", "Accountant", "Doctor", "Teacher", "HR Specialist",
+            "Sales Manager", "Accountant", "Doctor",
+            "Teacher", "HR Specialist",
             "Logistics Coordinator", "Architect",
             "Product Manager", "Business Analyst", "QA Engineer",
             "DevOps Engineer", "System Administrator", "Network Engineer",
@@ -39,7 +41,7 @@ class Command(BaseCommand):
             "Scrum Master"
         ]
 
-        self.stdout.write(f"We are starting to create 120 users...")
+        self.stdout.write("We are starting to create 120 users...")
 
         try:
             with transaction.atomic():

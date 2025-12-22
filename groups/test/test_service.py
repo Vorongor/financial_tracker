@@ -87,10 +87,11 @@ class GroupInvitationServiceTest(TestCase):
 
         self.group.refresh_from_db()
         self.assertIsNone(self.group.creator)
-        self.assertFalse(GroupMembership.objects.filter(
-            group=self.group,
-            user=self.creator).exists()
-                         )
+        self.assertFalse(
+            GroupMembership.objects.filter(
+                group=self.group,
+                user=self.creator).exists()
+        )
 
 
 class GroupEventServiceTest(TestCase):

@@ -36,9 +36,18 @@ urlpatterns = [
         GroupRejectInviteView.as_view(),
         name="reject-invite",
     ),
-    path("<int:pk>/promote/<int:user_id>/", GroupPromoteView.as_view(), name="promote"),
-    path("<int:pk>/demote/<int:user_id>/", GroupDemoteView.as_view(), name="demote"),
-    path("leave-group/<int:group_id>/", LeaveGroupView.as_view(), name="leave-group"),
+    path(
+        "<int:pk>/promote/<int:user_id>/",
+        GroupPromoteView.as_view(),
+        name="promote"),
+    path(
+        "<int:pk>/demote/<int:user_id>/",
+        GroupDemoteView.as_view(),
+        name="demote"),
+    path(
+        "leave-group/<int:group_id>/",
+        LeaveGroupView.as_view(),
+        name="leave-group"),
     path(
         "<int:group_id>/create-event//",
         GroupEventsCreateView.as_view(),

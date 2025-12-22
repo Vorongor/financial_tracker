@@ -12,16 +12,16 @@ class EventViewsTestCase(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(
-            username='testuser',
-            password='1Qazcde3',
+            username="testuser",
+            password="1Qazcde3",
             email="test1@gmail.com"
         )
         self.other_user = User.objects.create_user(
-            username='otheruser',
-            password='2Wsxvfr4',
+            username="otheruser",
+            password="2Wsxvfr4",
             email="test2@gmail.com"
         )
-        self.client.login(username='testuser', password='1Qazcde3')
+        self.client.login(username="testuser", password="1Qazcde3")
 
         self.event = Event.objects.create(
             name="Test Event",
@@ -30,7 +30,7 @@ class EventViewsTestCase(TestCase):
         )
 
     def test_event_hero_view_context(self):
-        response = self.client.get(reverse('events:event-hero'))
+        response = self.client.get(reverse("events:event-hero"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "events/events_list.html")
         self.assertIn("private_events", response.context)
@@ -92,7 +92,7 @@ class EventViewsTestCase(TestCase):
             "start_date": "2025-12-01",
             "end_date": "2025-12-02",
             "planned_amount": "100.00",
-            "type": Event.EventType.ACCUMULATIVE,
+            "event_type": Event.EventType.ACCUMULATIVE,
             "accessibility": Event.Accessibility.PUBLIC,
             "status": Event.EventStatus.PLANNED,
             "participants": [str(self.other_user.id)],
@@ -123,11 +123,11 @@ class EventViewsTestCase(TestCase):
             event_id=event.id
         )
 
-    @patch('events.views.EventInvitationService.accept_event_invitation')
+    @patch("events.views.EventInvitationService.accept_event_invitation")
     def test_event_accept_invite_view(self, mock_accept):
         url = reverse(
-            'events:event-accept-members',
-            kwargs={'pk': self.event.pk}
+            "events:event-accept-members",
+            kwargs={"pk": self.event.pk}
         )
         response = self.client.post(url)
 
@@ -136,20 +136,20 @@ class EventViewsTestCase(TestCase):
             user_id=self.user.id
         )
         self.assertRedirects(response, reverse(
-            'events:event-detail',
-            kwargs={'pk': self.event.pk}
+            "events:event-detail",
+            kwargs={"pk": self.event.pk}
         ))
 
-    @patch('events.views.EventInvitationService.leave_event')
+    @patch("events.views.EventInvitationService.leave_event")
     def test_event_leave_view(self, mock_leave):
         url = reverse(
-            'events:event-leave',
-            kwargs={'pk': self.event.pk}
+            "events:event-leave",
+            kwargs={"pk": self.event.pk}
         )
         response = self.client.post(url)
 
         mock_leave.assert_called_once()
-        self.assertRedirects(response, reverse('events:event-hero'))
+        self.assertRedirects(response, reverse("events:event-hero"))
 
     def test_event_update_post_success(self):
         data = {
@@ -158,7 +158,7 @@ class EventViewsTestCase(TestCase):
             "start_date": "2025-01-01",
             "end_date": "2025-01-02",
             "status": Event.EventStatus.PLANNED,
-            "type": Event.EventType.ACCUMULATIVE,
+            "event_type": Event.EventType.ACCUMULATIVE,
             "planned_amount": 500,
             "start_amount": 0,
         }

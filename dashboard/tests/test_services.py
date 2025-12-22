@@ -21,7 +21,7 @@ class TransactionStatsServiceTest(TestCase):
         self.now = timezone.now()
 
     def create_category(self, name, type_):
-        return Category.objects.create(name=name, type=type_)
+        return Category.objects.create(name=name, category_type=type_)
 
     def create_transaction(
             self,
@@ -34,7 +34,7 @@ class TransactionStatsServiceTest(TestCase):
         return Transaction.objects.create(
             target=self.budget,
             category=category,
-            type=type_,
+            transaction_type=type_,
             amount=Decimal(amount),
             date=date or self.now,
             payer=self.user,

@@ -15,8 +15,14 @@ from accounts.views import (
 )
 
 urlpatterns = [
-    path("register/", RegisterView.as_view(), name="register"),
-    path("profile_page/<int:pk>/", ProfileView.as_view(), name="profile-page"),
+    path(
+        "register/",
+        RegisterView.as_view(),
+        name="register"),
+    path(
+        "profile_page/<int:pk>/",
+        ProfileView.as_view(),
+        name="profile-page"),
     path(
         "profile_page/<int:pk>/update/",
         UpdateProfileView.as_view(),

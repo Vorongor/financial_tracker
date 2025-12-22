@@ -45,6 +45,14 @@ class TagPieDiagram:
     total_amount: int
     avg_amount: float
 
+
 @dataclass
 class PieDiagramSegment:
     points: List[TagPieDiagram]
+
+
+@dataclass
+class BarChartData:
+    labels: list[str]
+    incomes: list[float]
+    expenses: list[float]

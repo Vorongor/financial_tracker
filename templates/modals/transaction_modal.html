@@ -44,14 +44,14 @@ justify-content-center g-5">
           </div>
 
           <div class="form-floating text-secondary mb-4 modal-form-field">
-            <select name="type"
+            <select name="transaction_type"
                     class="form-select"
                     id="typeInput"
-                    hx-get="{% url 'ajax_get_categories' %}"
+                    hx-get="{% url "ajax_get_categories" %}"
                     hx-trigger="change"
                     hx-target="#categorySelect"
                     hx-include="this">
-              {% for value, label in transaction_form.fields.type.choices %}
+              {% for value, label in transaction_form.fields.transaction_type.choices %}
                 <option value="{{ value }}">{{ label }}</option>
               {% endfor %}
             </select>

@@ -64,6 +64,25 @@ class GroupEditForm(ModelForm):
             "start_date",
             "end_date"
         )
+        widgets = {
+            "name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Event name"}
+            ),
+            "description": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 4,
+                    "placeholder": "Optional description",
+                }
+            ),
+            "start_date": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}
+            ),
+            "end_date": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}
+            ),
+            "state": forms.Select(attrs={"class": "form-select"}),
+        }
 
 
 class GroupEventCreateForm(forms.ModelForm):
@@ -76,7 +95,7 @@ class GroupEventCreateForm(forms.ModelForm):
             "start_date",
             "end_date",
             "planned_amount",
-            "type",
+            "event_type",
             "accessibility",
             "status",
         ]
@@ -101,12 +120,12 @@ class GroupEventCreateForm(forms.ModelForm):
             "planned_amount": forms.NumberInput(
                 attrs={"class": "form-control", "min": 0, "step": "0.01"}
             ),
-            "type": forms.Select(attrs={"class": "form-select"}),
+            "event_type": forms.Select(attrs={"class": "form-select"}),
             "status": forms.Select(attrs={"class": "form-select"}),
         }
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop("user")
+        kwargs.pop("user")
         self.group = kwargs.pop("group", None)
         super().__init__(*args, **kwargs)
 

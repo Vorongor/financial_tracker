@@ -35,7 +35,7 @@ class TransferCreateForm(forms.ModelForm):
         model = Transaction
         fields = [
             "amount",
-            "type",
+            "transaction_type",
             "category",
             "note",
         ]
@@ -43,7 +43,7 @@ class TransferCreateForm(forms.ModelForm):
             "amount": forms.NumberInput(
                 attrs={"class": "form-control", "min": 0, "step": "0.01"}
             ),
-            "type": forms.Select(
+            "transaction_type": forms.Select(
                 attrs={
                     "class": "form-select",
                 }
@@ -65,11 +65,15 @@ class TransferCreateForm(forms.ModelForm):
 
 class TopUpBudgetForm(forms.Form):
     amount = forms.DecimalField(
-        min_value=Decimal("0.01"), max_digits=12, decimal_places=2,
+        min_value=Decimal("0.01"),
+        max_digits=12,
+        decimal_places=2,
         label="Amount"
     )
-    note = forms.CharField(required=False,
-                           widget=forms.Textarea(attrs={"rows": 2}))
+    note = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 2})
+    )
 
     date = forms.DateField(
         required=False,
@@ -81,7 +85,7 @@ class TopUpBudgetForm(forms.Form):
         ),
     )
     category = forms.ModelChoiceField(
-        queryset=Category.objects.filter(type=Category.Types.INCOME),
+        queryset=Category.objects.filter(category_type=Category.Types.INCOME),
         required=False,
         empty_label="Select Category (Optional)"
     )
@@ -95,13 +99,13 @@ class BudgetEditForm(ModelForm):
             "start_amount",
         )
         widgets = {
-            'planned_amount': forms.NumberInput(
+            "planned_amount": forms.NumberInput(
                 attrs={
-                    'class': 'form-control'}
+                    "class": "form-control"}
             ),
-            'start_amount': forms.NumberInput(
+            "start_amount": forms.NumberInput(
                 attrs={
-                    'class': 'form-control'}
+                    "class": "form-control"}
             ),
         }
 
@@ -124,7 +128,7 @@ class SetExpenseBudgetForm(forms.Form):
         ),
     )
     category = forms.ModelChoiceField(
-        queryset=Category.objects.filter(type=Category.Types.EXPENSE),
+        queryset=Category.objects.filter(category_type=Category.Types.EXPENSE),
         required=False,
         empty_label="Select Category (Optional)"
     )

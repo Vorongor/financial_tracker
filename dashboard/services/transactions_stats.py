@@ -42,14 +42,20 @@ class TransactionStatsService:
         aggregates = qs.aggregate(
             total_income=Sum(
                 Case(
-                    When(type=Transaction.Types.INCOME, then="amount"),
+                    When(
+                        transaction_type=Transaction.Types.INCOME,
+                        then="amount"
+                    ),
                     default=Value(0),
                     output_field=DecimalField(),
                 )
             ),
             total_expense=Sum(
                 Case(
-                    When(type=Transaction.Types.EXPENSE, then="amount"),
+                    When(
+                        transaction_type=Transaction.Types.EXPENSE,
+                        then="amount"
+                    ),
                     default=Value(0),
                     output_field=DecimalField(),
                 )
@@ -74,14 +80,16 @@ class TransactionStatsService:
             .annotate(
                 income=Sum(
                     Case(
-                        When(type=Transaction.Types.INCOME, then="amount"),
+                        When(transaction_type=Transaction.Types.INCOME,
+                             then="amount"),
                         default=Value(0),
                         output_field=DecimalField(),
                     )
                 ),
                 expense=Sum(
                     Case(
-                        When(type=Transaction.Types.EXPENSE, then="amount"),
+                        When(transaction_type=Transaction.Types.EXPENSE,
+                             then="amount"),
                         default=Value(0),
                         output_field=DecimalField(),
                     )
@@ -110,7 +118,7 @@ class TransactionStatsService:
         qs = (
             Transaction.objects.filter(
                 target=target.budget,
-                type=transaction_type
+                transaction_type=transaction_type
             )
             .values("category__name")
             .annotate(total=Count("id"))
@@ -132,8 +140,8 @@ class TransactionStatsService:
     def get_category_stats(cls, ctx: AnalyticsContext, transaction_type):
         qs = (
             cls._base_queryset(ctx)
-            .filter(type=transaction_type)
-            .values("category__name", "category__type")
+            .filter(transaction_type=transaction_type)
+            .values("category__name", "category__category_type")
             .annotate(
                 total_count=Count("id"),
                 total_amount=Sum("amount"),
@@ -151,7 +159,7 @@ class TransactionStatsService:
             amount = row["total_amount"] or Decimal("0")
             tags.append(TagPieDiagram(
                 tag_name=row["category__name"] or "Other",
-                tag_type=row["category__type"] or transaction_type,
+                tag_type=row["category__category_type"] or transaction_type,
                 total_count=row["total_count"],
                 total_amount=int(amount),
                 avg_amount=float(row["avg_amount"] or 0),

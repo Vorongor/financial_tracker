@@ -37,15 +37,15 @@ class TransfersServiceTest(TestCase):
 
         Category.objects.create(
             name="Spent on donate",
-            type=Category.Types.EXPENSE
+            category_type=Category.Types.EXPENSE
         )
         Category.objects.create(
             name="Receive from saved",
-            type=Category.Types.INCOME
+            category_type=Category.Types.INCOME
         )
         self.general_cat = Category.objects.create(
             name="General",
-            type=Category.Types.EXPENSE
+            category_type=Category.Types.EXPENSE
         )
 
     def test_transfer_between_budgets_logic(self):
@@ -94,11 +94,10 @@ class TransfersServiceTest(TestCase):
         with self.assertRaises(ValueError):
             TransfersService.get_budget_by_content_type("invalid_type", 1)
 
-
     def test_get_user_transactions(self):
         Transaction.objects.create(
             amount=Decimal("10.00"),
-            type=Transaction.Types.EXPENSE,
+            transaction_type=Transaction.Types.EXPENSE,
             target=self.budget_from,
             payer=self.user_from
         )
@@ -117,7 +116,7 @@ class TransfersServiceTest(TestCase):
 
         Transaction.objects.create(
             amount=Decimal("1000.00"),
-            type=Transaction.Types.INCOME,
+            transaction_type=Transaction.Types.INCOME,
             target=event_budget,
             payer=self.user_from
         )

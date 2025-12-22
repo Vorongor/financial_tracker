@@ -2,7 +2,8 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db.models import Q, OuterRef, Subquery, Case, When, Value, \
+    BooleanField
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views import View
@@ -69,19 +70,19 @@ class ProfileView(LoginRequiredMixin, DetailView):
 
         context["events"] = Event.objects.filter(
             Q(creator=user) | Q(memberships__user=user)
-        ).select_related('creator').distinct()
+        ).select_related("creator").distinct()
 
         context["groups"] = Group.objects.filter(
             Q(creator=user) | Q(groupslink__user=user)
-        ).select_related('creator').distinct()
+        ).select_related("creator").distinct()
 
         context["take_to_connect"] = UserConnection.objects.filter(
             from_user=user, status=UserConnection.Status.PENDING
-        ).select_related('to_user').distinct()
+        ).select_related("to_user").distinct()
 
         context["invite_to_connect"] = UserConnection.objects.filter(
             to_user=user, status=UserConnection.Status.PENDING
-        ).select_related('from_user').distinct()
+        ).select_related("from_user").distinct()
 
         context["connections"] = UserConnectionsService.get_user_connections(
             user.id,
@@ -90,12 +91,12 @@ class ProfileView(LoginRequiredMixin, DetailView):
 
         categories = Category.objects.all()
 
-        context['categories_income'] = categories.filter(
-            type=Category.Types.INCOME,
+        context["categories_income"] = categories.filter(
+            category_type=Category.Types.INCOME,
             is_active=True
         )
-        context['categories_expense'] = categories.filter(
-            type=Category.Types.EXPENSE,
+        context["categories_expense"] = categories.filter(
+            category_type=Category.Types.EXPENSE,
             is_active=True
         )
 
@@ -132,65 +133,64 @@ class DeleteProfileView(LoginRequiredMixin, DeleteView):
 class CommunityListView(LoginRequiredMixin, ListView):
     model = get_user_model()
     template_name = "community/community_list.html"
-    context_object_name = "users"
-    paginate_by = 20
+    context_object_name = "other_users"
+
+    def get_template_names(self):
+        if self.request.headers.get("HX-Request"):
+            return "partials/user_table_rows.html"
+        return self.template_name
 
     def get_queryset(self):
-        queryset = get_user_model().objects.exclude(pk=self.request.user.id)
+        query = self.request.GET.get("q", "")
+        self.request.GET.get("status", "")
 
-        friend_list = UserConnectionsService.get_user_connections(
-            self.request.user.id
-        )
-
-        friend_list = [connect.from_user.id for connect in friend_list] + [
-            connect.to_user.id for connect in friend_list
+        connections = UserConnectionsService.get_user_connections(
+            self.request.user.id)
+        connected_ids = [
+            c.from_user_id
+            if c.to_user_id == self.request.user.id else c.to_user_id
+            for c in connections
         ]
+        connected_ids.append(self.request.user.id)
 
-        queryset = queryset.exclude(pk__in=friend_list)
+        queryset = get_user_model().objects.exclude(id__in=connected_ids)
 
-        query = self.request.GET.get("q")
         if query:
             queryset = queryset.filter(
                 Q(username__icontains=query)
-                | Q(email__icontains=query)
                 | Q(first_name__icontains=query)
                 | Q(last_name__icontains=query)
             )
-
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        friend_list = UserConnectionsService.get_user_connections(
-            self.request.user.id
-        )
-        context["connections"] = [
-            connect
-            for connect in friend_list
-            if connect.status == UserConnection.Status.ACCEPTED
-        ]
-        context["invite_to_connect"] = [
-            connect
-            for connect in friend_list
-            if (connect.to_user == self.request.user
-                and connect.status == UserConnection.Status.PENDING)
-        ]
-        context["sends_to_connect"] = [
-            connect
-            for connect in friend_list
-            if (connect.from_user == self.request.user
-                and connect.status == UserConnection.Status.PENDING)
-        ]
-        context["black_list"] = [
-            connect
-            for connect in friend_list
-            if (connect.status == UserConnection.Status.BLOCKED
-                and connect.from_user != self.request.user)
-        ]
-        context["uniq_key_form"] = UserKeyConnectForm()
-        context["content_type"] = "connection"
-        context["object_id"] = self.request.user.id
+        query = self.request.GET.get("q", "")
+        status_filter = self.request.GET.get("status", "")
 
+        connections = UserConnectionsService.get_user_connections(
+            self.request.user.id)
+
+        if status_filter:
+            connections = [c for c in connections if c.status == status_filter]
+
+        if query:
+            cur_query = query.lower()
+            connections = [
+                con for con in connections
+                if (
+                    cur_query in con.from_user.username.lower()
+                    or cur_query in con.to_user.username.lower()
+                    or cur_query in con.from_user.first_name.lower()
+                    or cur_query in con.to_user.first_name.lower()
+                )
+            ]
+
+        context["user_connections"] = connections
+        context["status_choices"] = UserConnection.Status.choices
+        context["uniq_key_form"] = UserKeyConnectForm()
+        context["content_type"] = "connection",
+        context["object_id"] = self.request.user.id
         return context
 
 

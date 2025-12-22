@@ -22,8 +22,8 @@ class PersonalDashView(TemplateView):
 
         today = timezone.now().date()
         date_from = today.replace(day=1)
-        context["default_from"] = date_from.strftime('%Y-%m-%d')
-        context["default_to"] = today.strftime('%Y-%m-%d')
+        context["default_from"] = date_from.strftime("%Y-%m-%d")
+        context["default_to"] = today.strftime("%Y-%m-%d")
 
         context_obj = AnalyticsContext(
             target_budget_id=user.budget.id,

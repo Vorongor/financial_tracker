@@ -10,8 +10,7 @@ from groups.models import Group
 class TransactionHistoryService:
     @classmethod
     def get_user_transactions(cls, user_id: int) -> QuerySet:
-        User = get_user_model()
-        user = get_object_or_404(User, pk=user_id)
+        user = get_object_or_404(get_user_model(), pk=user_id)
 
         return Transaction.objects.filter(payer=user)
 

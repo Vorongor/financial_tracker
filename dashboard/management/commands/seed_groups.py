@@ -12,10 +12,10 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = "Створює 100 груп та додає до них випадкових учасників"
+    help_tag = "Створює 100 груп та додає до них випадкових учасників"
 
     def handle(self, *args, **kwargs):
-        fake = Faker(['uk_UA'])
+        fake = Faker(["uk_UA"])
         users = list(User.objects.all())
 
         if len(users) < 20:
@@ -63,7 +63,7 @@ class Command(BaseCommand):
                         )
 
                 self.stdout.write(self.style.SUCCESS(
-                    f"Успішно створено 100 груп та додано учасників!"))
+                    "Успішно створено 100 груп та додано учасників!"))
 
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"Помилка: {e}"))

@@ -36,7 +36,7 @@ class EventAnalyticsServiceTest(TestCase):
     def create_transaction(self, *, amount, days_ago=0, payer):
         return Transaction.objects.create(
             target=self.budget,
-            type="Income",
+            transaction_type="Income",
             amount=Decimal(amount),
             payer=payer,
             date=timezone.now() - timedelta(days=days_ago),
@@ -81,43 +81,38 @@ class EventAnalyticsServiceTest(TestCase):
         index = 30 - 5
         self.assertEqual(result["data_points"][index], 300.0)
 
-        def test_social_stats_leaderboard(self):
-            self.create_transaction(amount="300", payer=self.user1)
-            self.create_transaction(amount="100", payer=self.user2)
+    def test_social_stats_leaderboard(self):
+        self.create_transaction(amount="300", payer=self.user1)
+        self.create_transaction(amount="100", payer=self.user2)
 
-            data = EventAnalyticsService.get_social_stats(
-                self.event, self.budget
-            )
+        data = EventAnalyticsService.get_social_stats(
+            self.event, self.budget
+        )
 
-            self.assertEqual(len(data["leaderboard"]), 2)
-            self.assertEqual(
-                data["leaderboard"][0]["payer__username"], "user1"
-            )
-            self.assertEqual(
-                float(data["leaderboard"][0]["total_contributed"]), 300.0
-            )
+        self.assertEqual(len(data["leaderboard"]), 2)
+        self.assertEqual(
+            data["leaderboard"][0]["payer__username"], "user1"
+        )
+        self.assertEqual(
+            float(data["leaderboard"][0]["total_contributed"]), 300.0
+        )
 
-        def test_social_stats_status_counts(self):
-            EventMembership.objects.create(
-                event=self.event,
-                user=self.user1,
-                role="Owner",
-            )
-            EventMembership.objects.create(
-                event=self.event,
-                user=self.user2,
-                role="Member",
-            )
-            EventMembership.objects.create(
-                event=self.event,
-                user=self.user2,
-                role="Member",
-            )
+    def test_social_stats_status_counts(self):
+        EventMembership.objects.create(
+            event=self.event,
+            user=self.user1,
+            role="Owner",
+        )
+        EventMembership.objects.create(
+            event=self.event,
+            user=self.user2,
+            role="Member",
+        )
 
-            data = EventAnalyticsService.get_social_stats(
-                self.event, self.budget
-            )
+        data = EventAnalyticsService.get_social_stats(
+            self.event, self.budget
+        )
 
-            self.assertIn("Owner", data["status_labels"])
-            self.assertIn("Member", data["status_labels"])
-            self.assertIn(2, data["status_data"])
+        self.assertIn("Owner", data["status_labels"])
+        self.assertIn("Member", data["status_labels"])
+        self.assertIn(1, data["status_data"])

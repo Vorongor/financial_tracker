@@ -103,7 +103,7 @@ class TestEventInvitationService(TestCase):
         self.assertEqual(membership.role, Role.ADMIN)
 
     def test_leave_event_creator_fails(self):
-        membership = EventMembership.objects.create(
+        EventMembership.objects.create(
             event=self.event,
             user=self.creator,
             role=Role.CREATOR
@@ -131,7 +131,7 @@ class TestEventInvitationService(TestCase):
             name="Ghost Event",
             creator=None
         )
-        membership = EventMembership.objects.create(
+        EventMembership.objects.create(
             event=event_without_creator,
             user=self.user1,
             role=Role.MEMBER

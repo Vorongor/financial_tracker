@@ -48,9 +48,11 @@ class GroupsViewsTest(TestCase):
         self.assertEqual(len(response.context["invites"]), 1)
 
     @patch(
-        "groups.services.group_invitation.GroupInvitationService.create_group_invitation")
+        "groups.services.group_invitation"
+        ".GroupInvitationService.create_group_invitation")
     @patch(
-        "accounts.services.receive_connection.UserConnectionsService.get_user_connections")
+        "accounts.services.receive_connection"
+        ".UserConnectionsService.get_user_connections")
     def test_group_create_post(self, mock_connections, mock_invite_service):
         mock_connections.return_value = []
         url = reverse("groups:create")
@@ -100,7 +102,7 @@ class GroupsViewsTest(TestCase):
         )
 
     def test_create_event_inside_group_denied_for_non_members(self):
-        intruder = User.objects.create_user(
+        get_user_model().objects.create_user(
             username="intruder",
             password="password")
 
@@ -133,7 +135,7 @@ class GroupsViewsTest(TestCase):
             "start_amount": 0
         }
         response = self.client.post(url, data)
-
+        self.assertEqual(response.status_code, 302)
         self.group.refresh_from_db()
         budget.refresh_from_db()
         self.assertEqual(self.group.name, "Updated Group Name")
@@ -146,8 +148,10 @@ class GroupsViewsTest(TestCase):
         )
         response = self.client.post(url)
 
-        self.assertFalse(GroupMembership.objects.filter(
-            group=self.group,
-            user=self.user).exists()
-                         )
+        self.assertFalse(
+            GroupMembership.objects.filter(
+                group=self.group,
+                user=self.user
+            ).exists()
+        )
         self.assertRedirects(response, reverse("groups:home"))

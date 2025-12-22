@@ -66,29 +66,28 @@ class Budget(models.Model):
                 "start_amount",
                 "planned_amount",
         ):
-            val = getattr(self, field)
-            if val is None or val < 0:
+            validator = getattr(self, field)
+            if validator is None or validator < 0:
                 raise ValidationError({field: "Must be non-negative."})
 
     @transaction.atomic
     def recalc(self, save: bool = True):
         incomes = self.transactions.filter(
-            type=Transaction.Types.INCOME
+            transaction_type=Transaction.Types.INCOME
         ).aggregate(
             total=models.Sum("amount")
         )["total"] or Decimal("0.00")
 
         expenses = self.transactions.filter(
-            type=Transaction.Types.EXPENSE
+            transaction_type=Transaction.Types.EXPENSE
         ).aggregate(
             total=models.Sum("amount")
         )["total"] or Decimal("0.00")
-
+        amount = self.start_amount or Decimal("0.00")
+        current_amount = amount + incomes - expenses
         self.total_income = incomes
         self.total_expenses = expenses
-        self.current_amount = (
-                (self.start_amount or Decimal("0.00")) + incomes - expenses
-        )
+        self.current_amount = current_amount
 
         if save:
             self.full_clean()
@@ -108,7 +107,7 @@ class Category(models.Model):
         EXPENSE = "Expense"
 
     name = models.CharField(max_length=120, unique=True)
-    type = models.CharField(max_length=20, choices=Types.choices)
+    category_type = models.CharField(max_length=20, choices=Types.choices)
     color_hex = models.CharField(max_length=7, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     order_index = models.PositiveSmallIntegerField(default=0)
@@ -131,7 +130,7 @@ class Transaction(models.Model):
         max_digits=12, decimal_places=2,
         validators=[MinValueValidator(Decimal("0.01"))]
     )
-    type = models.CharField(
+    transaction_type = models.CharField(
         max_length=20,
         choices=Types.choices,
         default=Types.INCOME,
@@ -139,10 +138,13 @@ class Transaction(models.Model):
     date = models.DateTimeField(default=timezone.now)
     timestamp_create = models.DateTimeField(auto_now_add=True)
     target = models.ForeignKey(
-        Budget, on_delete=models.CASCADE, related_name="transactions"
+        Budget,
+        on_delete=models.CASCADE,
+        related_name="transactions"
     )
     payer = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
         related_name="transactions"
     )
     category = models.ForeignKey(
@@ -150,43 +152,47 @@ class Transaction(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="services",
+        related_name="transactions",
     )
     note = models.TextField(blank=True)
 
     class Meta:
-        db_table = "services"
+        db_table = "transactions"
         ordering = ("-date", "-timestamp_create")
 
     def __str__(self):
-        return f"{self.get_type_display()} {self.amount} -> {self.target}"
+        return (f"{self.get_transaction_type_display()} {self.amount} "
+                f"-> {self.target}")
 
     def get_short_description(self):
-        return f"{self.amount} -> {self.type}, from {self.payer.username}"
+        return (f"{self.amount} -> {self.transaction_type}, "
+                f"from {self.payer.username}")
 
     def get_full_description(self):
-        return (f"{self.amount} -> {self.type}, "
+        return (f"{self.amount} -> {self.transaction_type}, "
                 f"from {self.payer.username} "
                 f"to {self.target.get_owner()} "
                 f"at {self.date}")
 
     def clean(self):
-        if self.category and self.type:
+        if self.category and self.transaction_type:
             if (
-                    self.category.type == Category.Types.INCOME
-                    and self.type != self.Types.INCOME
+                    self.category.category_type == Category.Types.INCOME
+                    and self.transaction_type != self.Types.INCOME
             ):
                 raise ValidationError(
                     {
-                        "category": "Category type conflicts with transaction type.(INCOME)"}
+                        "category": "Category type conflicts "
+                                    "with transaction type.(INCOME)"}
                 )
             if (
-                    self.category.type == Category.Types.EXPENSE
-                    and self.type != self.Types.EXPENSE
+                    self.category.category_type == Category.Types.EXPENSE
+                    and self.transaction_type != self.Types.EXPENSE
             ):
                 raise ValidationError(
                     {
-                        "category": "Category type conflicts with transaction type. (EXPENSE)"}
+                        "category": "Category type conflicts "
+                                    "with transaction type. (EXPENSE)"}
                 )
 
     def save(self, *args, **kwargs):

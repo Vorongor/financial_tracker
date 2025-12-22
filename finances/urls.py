@@ -36,8 +36,8 @@ urlpatterns = [
         name="transfer-history",
     ),
     path(
-        'ajax/categories/',
+        "ajax/categories/",
         CategoryOptionsView.as_view(),
-         name='ajax_get_categories'
+        name="ajax_get_categories"
     ),
 ]

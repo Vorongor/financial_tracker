@@ -2,108 +2,118 @@
 {% load static %}
 {% block content %}
 
-  <div class="container d-flex justify-content-center align-items-center"
-       style="min-height: 80vh;">
+<div class="container d-flex justify-content-center align-items-center py-5"
+     style="min-height: 80vh;">
+  <div
+      class="col-12 col-md-8 col-lg-6 p-4 bg-dark text-white rounded shadow-lg position-relative">
 
-    <div
-        class="col-12 col-md-6 col-lg-5 p-4 bg-dark text-white rounded shadow-lg position-relative">
+    <!-- Back button -->
+    <a href="{% url 'groups:home' %}"
+       class="position-absolute"
+       style="top: 20px; left: 20px;">
+      <img src="{% static 'assets/images/backward-svg-white.svg' %}"
+           width="30" height="30" alt="Back">
+    </a>
 
-      <!-- Back button -->
-      <a href="{% url 'groups:home' %}"
-         class="position-absolute"
-         style="top: 20px; left: 20px;">
-        <img src="{% static 'assets/images/backward-svg-white.svg' %}"
-             width="30"
-             height="30"
-             alt="Back">
-      </a>
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <img src="{% static 'assets/images/pocket-svg-white.svg' %}"
+           width="60" height="60" class="mb-3" alt="Group">
+      <h2 class="fw-bold">Create Group</h2>
+      <p class="text-secondary">Set up group information</p>
+    </div>
 
-      <!-- Header -->
-      <div class="text-center mb-4">
-        <img src="{% static 'assets/images/pocket-svg-white.svg' %}"
-             width="60"
-             height="60"
-             class="mb-3"
-             alt="Group">
-        <h2 class="fw-bold">Create Group</h2>
-        <p class="text-secondary">Set up group information</p>
+    <form method="post">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <!-- General information -->
+      <h5 class="text-secondary mb-3 border-bottom border-secondary pb-2">
+        General Information
+      </h5>
+
+      <!-- Name -->
+      <div class="form-floating mb-3 text-secondary">
+        {{ form.name }}
+        <label for="{{ form.name.id_for_label }}">Group Name</label>
+        <div class="text-danger small">{{ form.name.errors }}</div>
       </div>
 
-      <form method="post">
-        {% csrf_token %}
+      <!-- Description -->
+      <div class="form-floating mb-3 text-secondary">
+        {{ form.description }}
+        <label for="{{ form.description.id_for_label }}">Description</label>
+        <div class="text-danger small">{{ form.description.errors }}</div>
+      </div>
 
-        {% if form.non_field_errors %}
-          <div class="alert alert-danger">
-            {{ form.non_field_errors }}
+      <!-- State -->
+      <div class="mb-3">
+        <label class="form-label text-secondary small">
+          State
+        </label>
+        {{ form.state }}
+        <div class="text-danger small">{{ form.state.errors }}</div>
+      </div>
+
+      <!-- Dates -->
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-floating mb-3 text-secondary">
+            {{ form.start_date }}
+            <label>Start Date</label>
+            <div class="text-danger small">{{ form.start_date.errors }}</div>
           </div>
-        {% endif %}
-
-        <!-- Name -->
-        <div class="form-floating mb-3 text-secondary">
-          {{ form.name }}
-          <label>Name</label>
-          {{ form.name.errors }}
         </div>
-
-        <!-- Description -->
-        <div class="form-floating mb-3 text-secondary">
-          {{ form.description }}
-          <label>Description</label>
-          {{ form.description.errors }}
+        <div class="col-md-6">
+          <div class="form-floating mb-3 text-secondary">
+            {{ form.end_date }}
+            <label>End Date</label>
+            <div class="text-danger small">{{ form.end_date.errors }}</div>
+          </div>
         </div>
+      </div>
 
-        <!-- State -->
-        <div class="mb-3">
-          <label class="form-label text-secondary">
-            State
+
+      {% if form.participants.field.choices %}
+        <h5 class="text-secondary mt-4 mb-3 border-bottom border-secondary pb-2">
+          Participants
+        </h5>
+
+        <div class="mb-4">
+          <label class="form-label text-secondary small">
+            Add participants
           </label>
-          {{ form.state }}
-          {{ form.state.errors }}
-        </div>
 
-        <!-- Start date -->
-        <div class="form-floating mb-3 text-secondary">
-          {{ form.start_date }}
-          <label>Start date</label>
-          {{ form.start_date.errors }}
-        </div>
+          <div class="bg-transparent"
+               style="max-height: 200px; overflow-y: auto;">
+            {% for checkbox in form.participants %}
+              <div class="form-check mb-2">
+                {{ checkbox.tag }}
+                <label class="form-check-label text-white-50">
+                  {{ checkbox.choice_label }}
+                </label>
+              </div>
+            {% endfor %}
+          </div>
 
-        <!-- End date -->
-        <div class="form-floating mb-4 text-secondary">
-          {{ form.end_date }}
-          <label>End date</label>
-          {{ form.end_date.errors }}
-        </div>
-
-        <!-- Participants -->
-        {% if form.participants.field.choices %}
-          <div class="mb-4">
-            <label class="form-label text-secondary">
-              Add participants
-            </label>
-
-            <div class="bg-transparent"
-                 style="max-height: 200px; overflow-y: auto;">
-              {% for checkbox in form.participants %}
-                <div class="form-check mb-2">
-                  {{ checkbox.tag }}
-                  <label class="form-check-label text-white-50">
-                    {{ checkbox.choice_label }}
-                  </label>
-                </div>
-              {% endfor %}
-            </div>
-
+          <div class="text-danger small">
             {{ form.participants.errors }}
           </div>
-        {% endif %}
+        </div>
+      {% endif %}
 
-        <button class="btn btn-primary btn-lg w-100">
+      <div class="mt-4">
+        <button type="submit" class="btn btn-primary btn-lg w-100 shadow">
           Create Group
         </button>
-      </form>
-
-    </div>
+      </div>
+    </form>
   </div>
+</div>
 
 {% endblock %}

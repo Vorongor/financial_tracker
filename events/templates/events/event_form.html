@@ -2,29 +2,24 @@
 {% load static %}
 {% block content %}
 
-  <div class="container d-flex justify-content-center align-items-center"
+  <div class="container d-flex justify-content-center align-items-center py-5"
        style="min-height: 80vh;">
 
     <div
-        class="col-12 col-md-6 col-lg-5 p-4 bg-dark text-white rounded shadow-lg position-relative">
+        class="col-12 col-md-8 col-lg-6 p-4 bg-dark text-white rounded shadow-lg position-relative">
 
       <!-- Back button -->
       <a href="{% url 'events:event-hero' %}"
          class="position-absolute"
          style="top: 20px; left: 20px;">
         <img src="{% static 'assets/images/backward-svg-white.svg' %}"
-             width="30"
-             height="30"
-             alt="Back">
+             width="30" height="30" alt="Back">
       </a>
 
       <!-- Header -->
       <div class="text-center mb-4">
         <img src="{% static 'assets/images/calendar-event-svg_white.svg' %}"
-             width="60"
-             height="60"
-             class="mb-3"
-             alt="Event Calendar">
+             width="60" height="60" class="mb-3" alt="Create Event">
         <h2 class="fw-bold">Create Event</h2>
         <p class="text-secondary">Set up all event information</p>
       </div>
@@ -38,90 +33,118 @@
           </div>
         {% endif %}
 
-        <!-- Name -->
+        <!-- General Information -->
+        <h5 class="text-secondary mb-3 border-bottom border-secondary pb-2">
+          General Information
+        </h5>
+
         <div class="form-floating mb-3 text-secondary">
           {{ form.name }}
-          <label>Name</label>
-          {{ form.name.errors }}
+          <label for="{{ form.name.id_for_label }}">Event Name</label>
+          <div class="text-danger small">{{ form.name.errors }}</div>
         </div>
 
-        <!-- Description -->
         <div class="form-floating mb-3 text-secondary">
           {{ form.description }}
-          <label>Description</label>
-          {{ form.description.errors }}
+          <label for="{{ form.description.id_for_label }}">Description</label>
+          <div class="text-danger small">{{ form.description.errors }}</div>
         </div>
 
-        <!-- Planned amount -->
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label text-secondary small">
+                Event Type
+              </label>
+              {{ form.event_type }}
+              <div class="text-danger small">{{ form.event_type.errors }}</div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label text-secondary small">
+                Status
+              </label>
+              {{ form.status }}
+              <div class="text-danger small">{{ form.status.errors }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dates -->
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-floating mb-3 text-secondary">
+              {{ form.start_date }}
+              <label>Start Date</label>
+              <div class="text-danger small">
+                {{ form.start_date.errors }}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-floating mb-3 text-secondary">
+              {{ form.end_date }}
+              <label>End Date</label>
+              <div class="text-danger small">
+                {{ form.end_date.errors }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Financial Settings -->
+        <h5 class="text-secondary mt-4 mb-3 border-bottom border-secondary pb-2">
+          Financial Settings
+        </h5>
+
         <div class="form-floating mb-3 text-secondary">
           {{ form.planned_amount }}
-          <label>Planned amount</label>
-          {{ form.planned_amount.errors }}
-        </div>
-
-        <!-- Type -->
-        <div class="mb-3">
-          <label class="form-label text-secondary">Event type</label>
-          {{ form.type }}
-          {{ form.type.errors }}
+          <label>Planned Goal</label>
+          <div class="text-danger small">
+            {{ form.planned_amount.errors }}
+          </div>
         </div>
 
         <!-- Accessibility -->
         {% block accessibility %}
           <div class="mb-3">
-            <label for="accessibility"
-                   class="form-label text-secondary">
+            <label class="form-label text-secondary small">
               Accessibility
             </label>
-            <select class="form-control text-secondary " name="accessibility"
-                    id="accessibility">
+            <select class="form-control text-secondary" name="accessibility">
               <option>Private</option>
               <option>Public</option>
             </select>
-
-            {% if form.accessibility.errors %}
-              <div class="text-danger small mt-1">
-                {{ form.accessibility.errors }}
-              </div>
-            {% endif %}
+            <div class="text-danger small">
+              {{ form.accessibility.errors }}
+            </div>
           </div>
         {% endblock %}
-        <!-- Status -->
-        <div class="mb-3">
-          <label class="form-label text-secondary">Status</label>
-          {{ form.status }}
-          {{ form.status.errors }}
-        </div>
 
-        <!-- Start date -->
-        <div class="form-floating mb-3 text-secondary">
-          {{ form.start_date }}
-          <label>Start date</label>
-          {{ form.start_date.errors }}
-        </div>
-
-        <!-- End date -->
-        <div class="form-floating mb-4 text-secondary">
-          {{ form.end_date }}
-          <label>End date</label>
-          {{ form.end_date.errors }}
-        </div>
-        <!-- Add members -->
+        <!-- Participants -->
         {% if form.participants.field.choices %}
           <div class="mb-4">
-            <label class="form-label text-secondary">
-              Invite participants
+            <label class="form-label text-secondary small">
+              Invite Participants
             </label>
             {{ form.participants }}
-            {{ form.participants.errors }}
+            <div class="text-danger small">
+              {{ form.participants.errors }}
+            </div>
           </div>
         {% endif %}
 
-        <button class="btn btn-primary btn-lg w-100">
-          Create Event
-        </button>
-      </form>
+        <div class="mt-4">
+          <button type="submit"
+                  class="btn btn-primary btn-lg w-100 shadow">
+            Create Event
+          </button>
+        </div>
 
+      </form>
     </div>
   </div>
 

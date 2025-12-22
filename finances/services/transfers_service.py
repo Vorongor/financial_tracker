@@ -19,24 +19,24 @@ class TransfersService:
             content_type: str,
             object_id: int
     ) -> Budget:
-        OWNER_MODELS = {
+        owner_models = {
             "event": Event,
             "group": Group,
             "user": User,
         }
-        model = OWNER_MODELS.get(content_type)
+        model = owner_models.get(content_type)
         if not model:
             raise ValueError(f"Invalid owner type: {content_type}")
 
         owner = get_object_or_404(model, pk=object_id)
-        if not hasattr(owner, 'budget') or not owner.budget:
+        if not hasattr(owner, "budget") or not owner.budget:
             raise ValueError("Target has no budget")
 
         return owner.budget
 
     @classmethod
     @transaction.atomic
-    def transfer_between_budgets(clas,
+    def transfer_between_budgets(cls,
                                  amount: Decimal,
                                  from_budget: Budget,
                                  to_budget: Budget,
@@ -51,13 +51,20 @@ class TransfersService:
         receive = Category.objects.get(
             name="Receive from saved"
         )
-        expense_category = category if category and category.type == Category.Types.EXPENSE else donate
-        income_category = category if category and category.type == Category.Types.INCOME else receive
+        expense_category = category if (
+            category
+            and category.category_type == Category.Types.EXPENSE
+        ) else donate
+
+        income_category = category if (
+            category
+            and category.category_type == Category.Types.INCOME
+        ) else receive
 
         # 1. EXPENSE from payer budget
         Transaction.objects.create(
             amount=amount,
-            type=Transaction.Types.EXPENSE,
+            transaction_type=Transaction.Types.EXPENSE,
             target=from_budget,
             payer=payer,
             date=date,
@@ -68,7 +75,7 @@ class TransfersService:
         # 2. INCOME to target budget
         Transaction.objects.create(
             amount=amount,
-            type=Transaction.Types.INCOME,
+            transaction_type=Transaction.Types.INCOME,
             target=to_budget,
             payer=payer,
             date=date,
@@ -90,7 +97,7 @@ class TransfersService:
                       ):
         transaction = Transaction.objects.create(
             amount=amount,
-            type=Transaction.Types.INCOME,
+            transaction_type=Transaction.Types.INCOME,
             target=user.budget,
             payer=user,
             date=date,
@@ -111,7 +118,7 @@ class TransfersService:
                     ) -> Transaction:
         transaction = Transaction.objects.create(
             amount=amount,
-            type=Transaction.Types.EXPENSE,
+            transaction_type=Transaction.Types.EXPENSE,
             target=user.budget,
             payer=user,
             date=date,
