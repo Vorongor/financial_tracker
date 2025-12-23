@@ -1,6 +1,7 @@
+from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.urls import reverse
-from django.contrib.auth import get_user_model
+
 from accounts.models import UserConnection
 
 User = get_user_model()

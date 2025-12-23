@@ -1,10 +1,11 @@
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models
 
 from addition_info.choise_models import Role, Status
-from config import settings
+
 
 from finances.models import Budget
 

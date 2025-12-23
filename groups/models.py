@@ -1,7 +1,8 @@
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from addition_info.choise_models import Role, Status
-from config import settings
+
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from events.models import Event

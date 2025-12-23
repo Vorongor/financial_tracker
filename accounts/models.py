@@ -1,13 +1,12 @@
 import uuid
 
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models
 
 from accounts.services.user_budget_service import UserBudgetService
-from config import settings
-from finances.models import Budget
+
 
 
 class User(AbstractUser):
