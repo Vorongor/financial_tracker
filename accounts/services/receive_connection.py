@@ -12,24 +12,29 @@ user = get_user_model()
 class UserConnectionsService:
     @classmethod
     def get_user_connections(
-            cls,
-            user_id: int,
-            status: str = None
+        cls,
+        user_id: int,
+        status: str | None = None,
+        query: str | None = None,
     ) -> QuerySet[UserConnection]:
-        query = Q(from_user_id=user_id) | Q(to_user_id=user_id)
 
-        if status == "pending":
-            query &= Q(status=UserConnection.Status.PENDING)
+        qs = UserConnection.objects.filter(
+            Q(from_user_id=user_id) | Q(to_user_id=user_id)
+        ).select_related("from_user", "to_user")
 
-        if status == "accepted":
-            query &= Q(status=UserConnection.Status.ACCEPTED)
+        if status:
+            qs = qs.filter(status=status)
 
-        return UserConnection.objects.filter(
-            query
-        ).select_related(
-            "from_user",
-            "to_user"
-        ).distinct()
+        if query:
+            qs = qs.filter(
+                Q(from_user__username__icontains=query)
+                | Q(to_user__username__icontains=query)
+                | Q(from_user__first_name__icontains=query)
+                | Q(to_user__first_name__icontains=query)
+            )
+
+        return qs
+
 
     @classmethod
     def get_user_from_uk(cls, uk: str) -> user:

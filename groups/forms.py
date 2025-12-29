@@ -129,7 +129,7 @@ class GroupEventCreateForm(forms.ModelForm):
         self.group = kwargs.pop("group", None)
         super().__init__(*args, **kwargs)
 
-    def clean(self):
+    def clean(self) -> None:
         cleaned_data = super().clean()
 
         start_date = cleaned_data.get("start_date")
@@ -145,7 +145,7 @@ class GroupEventCreateForm(forms.ModelForm):
                 "Planned amount must be zero or positive.")
         return cleaned_data
 
-    def save(self, commit=True):
+    def save(self, commit=True) -> None:
         event = super().save(commit=False)
         if commit:
             event.save()

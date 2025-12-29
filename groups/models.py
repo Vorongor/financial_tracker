@@ -1,3 +1,5 @@
+from functools import cached_property
+
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -39,7 +41,7 @@ class Group(models.Model):
     def __str__(self):
         return f"{self.name} ({self.state})"
 
-    def clean(self):
+    def clean(self) -> None:
         if self.state == self.States.PERMANENT:
             if self.start_date or self.end_date:
                 raise ValidationError(
@@ -52,8 +54,8 @@ class Group(models.Model):
             ):
                 raise ValidationError("end_date must be >= start_date.")
 
-    @property
-    def budget(self):
+    @cached_property
+    def budget(self) -> Budget:
         """
         Return the Budget instance for this User, or None.
         Expects at most one Budget due to unique constraint in Budget.meta.
@@ -69,12 +71,12 @@ class GroupMembership(models.Model):
     group = models.ForeignKey(
         Group,
         on_delete=models.CASCADE,
-        related_name="groupslink",
+        related_name="memberships",
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="groupslink",
+        related_name="group_memberships",
     )
     role = models.CharField(
         max_length=20,
@@ -120,8 +122,8 @@ class GroupEventConnection(models.Model):
             )
         ]
 
-    def get_related_events(self):
+    def get_related_events(self) -> str:
         return (
-            f"{self.event.name} ({self.event.type} "
+            f"{self.event.name} ({self.event.event_type} "
             f"- {self.event.status}) - {self.join_date}"
         )

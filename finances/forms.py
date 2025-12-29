@@ -15,7 +15,7 @@ class UpdateBudgetForm(forms.ModelForm):
             "planned_amount",
         ]
 
-    def clean(self):
+    def clean(self) -> None:
         cleaned_data = super(UpdateBudgetForm, self).clean()
         return cleaned_data
 

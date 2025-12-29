@@ -4,26 +4,39 @@
   {% if event %}
     <div class="container py-4">
     <div class="row g-4 d-flex justify-content-center gap-3">
-      <!-- Event header -->
       <div class="card bg-dark text-white shadow-sm mb-4">
         {% include "events/components/event_top.html" %}
       </div>
 
-      <!-- Event details -->
       <div class="card bg-dark text-white shadow-sm mb-4">
         {% include "events/components/event_info.html" %}
       </div>
 
-      <!-- Budget -->
+
       {% if current_budget %}
         <div class="card bg-dark text-white shadow-sm mb-4">
           <div class="card-body">
             <h5 class="text-secondary mb-4">Event Analytics</h5>
-
-            <div class="row align-items-center">
-              <canvas id="burndownChart"
-                      style="max-height: 360px;"></canvas>
-            </div>
+            {% if event.event_type == "Savings" %}
+              <div class="row align-items-center">
+                {% if savings_chart_data_json %}
+                  <canvas id="savingsEventChart"
+                          style="max-height: 360px;"></canvas>
+                {% else %}
+                  <p>Savings chart will be here</p>
+                {% endif %}
+              </div>
+            {% elif event.event_type == "Accumulative" %}
+              <div class="row align-items-center">
+                <canvas id="accumulativeEventChart"
+                        style="max-height: 360px;"></canvas>
+              </div>
+            {% else %}
+              <div class="row align-items-center">
+                <P>{{ event.start_date }} - {{ event.end_date }}</P>
+                <canvas id="expensesChart"></canvas>
+              </div>
+            {% endif %}
           </div>
         </div>
       {% endif %}
@@ -33,18 +46,14 @@
         {% include "events/components/event_analytics.html" %}
       </div>
       <div class="d-flex flex-row justify-content- flex-wrap gap-3">
-        <!-- Transactions -->
         <div class="card bg-dark text-white shadow-sm mb-4 flex-grow-1">
           {% include "events/components/event_transactions.html" %}
         </div>
-
-        <!-- Members -->
         {% if event.accessibility != "Private" %}
           <div class="card bg-dark text-white shadow-sm mb-4 flex-grow-1">
             {% include "events/components/event_members.html" %}
           </div>
         {% endif %}
-        <!-- Connections -->
         {% if event.accessibility != "Private" %}
           <div class="card bg-dark text-white shadow-sm flex-grow-1">
             {% include "events/components/event_connects.html" %}
@@ -54,6 +63,9 @@
 
       <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
       {% include "events/components/script_event_detail.html" %}
+      {% include "events/components/script_savings_chart.html" %}
+      {% include "events/components/script_event_chart_expense.html" %}
+      {% include "events/components/script_event_chart_accum.html" %}
     </div>
 
 

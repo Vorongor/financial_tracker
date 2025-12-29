@@ -4,6 +4,8 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
 
+from accounts.models import Currency
+
 User = get_user_model()
 
 
@@ -15,9 +17,6 @@ class UserRegisterForm(UserCreationForm):
             "email",
             "first_name",
             "last_name",
-            "job",
-            "salary",
-            "default_currency",
         ]
 
     username = forms.CharField(
@@ -40,25 +39,6 @@ class UserRegisterForm(UserCreationForm):
             attrs={"placeholder": "Last name"})
     )
 
-    job = forms.CharField(
-        max_length=255,
-        required=False,
-        widget=forms.TextInput(attrs={"placeholder": "Job"}),
-    )
-
-    salary = forms.IntegerField(
-        min_value=0,
-        required=False,
-        widget=forms.NumberInput(attrs={"placeholder": "Salary"}),
-    )
-
-    default_currency = forms.CharField(
-        max_length=10,
-        required=False,
-        widget=forms.TextInput(
-            attrs={"placeholder": "Currency (UAH, USD, EUR...)"}),
-    )
-
     password1 = forms.CharField(
         label="Password", widget=forms.PasswordInput(
             attrs={"placeholder": "Password"})
@@ -69,7 +49,7 @@ class UserRegisterForm(UserCreationForm):
         widget=forms.PasswordInput(attrs={"placeholder": "Repeat password"}),
     )
 
-    def clean_username(self):
+    def clean_username(self) -> str:
         username = self.cleaned_data.get("username")
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError("This username is already taken.")
@@ -77,6 +57,16 @@ class UserRegisterForm(UserCreationForm):
 
 
 class UserUpdateForm(forms.ModelForm):
+    default_currency = forms.ChoiceField(
+        choices=Currency.choices,
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+                "placeholder": "Currency (UAH, USD, EUR...)"
+            }
+        ),
+    )
+
     class Meta:
         model = get_user_model()
         fields = [

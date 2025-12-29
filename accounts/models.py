@@ -4,15 +4,39 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.functional import cached_property
 
 from accounts.services.user_budget_service import UserBudgetService
+from finances.models import Budget
 
+
+class Currency(models.TextChoices):
+    USD = "USD"
+    EUR = "EUR"
+    JPY = "JPY"
+    CHF = "CHF"
+    DKK = "DKK"
+    UAH = "UAH"
+    GBP = "GBP"
+    AUD = "AUD"
+    CAD = "CAD"
+    CNY = "CNY"
+    HKD = "HKD"
+    NZD = "NZD"
+    SEK = "SEK"
+    NOK = "NOK"
+    INR = "INR"
+    SGD = "SGD"
 
 
 class User(AbstractUser):
-    job = models.CharField(max_length=255, blank=True)
+    job = models.CharField(max_length=255, blank=True, default="")
     salary = models.PositiveIntegerField(default=0)
-    default_currency = models.CharField(max_length=10, default="UAH")
+    default_currency = models.CharField(
+        max_length=3,
+        choices=Currency.choices,
+        default=Currency.USD,
+    )
     connect_key = models.UUIDField(
         default=uuid.uuid4,
         unique=True,
@@ -29,11 +53,11 @@ class User(AbstractUser):
     def __str__(self):
         return self.first_name + " " + self.last_name
 
-    @property
-    def budget(self):
+    @cached_property
+    def budget(self) -> Budget:
         return UserBudgetService.get_budget_for_instance(self)
 
-    def get_user_uniq_key(self):
+    def get_user_uniq_key(self) -> str:
         return str(self.connect_key)
 
 
@@ -66,15 +90,15 @@ class UserConnection(models.Model):
             )
         ]
 
-    def clean(self):
+    def clean(self) -> None:
         if self.from_user_id == self.to_user_id:
             raise ValidationError("User cannot connect to himself.")
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs) -> None:
         self.full_clean()
         super().save(*args, **kwargs)
 
-    def other_user(self, user: User):
+    def other_user(self, user: User) -> User:
         """
         back other user's connections
         """

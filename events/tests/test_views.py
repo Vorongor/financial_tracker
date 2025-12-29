@@ -35,18 +35,21 @@ class EventViewsTestCase(TestCase):
         self.assertTemplateUsed(response, "events/events_list.html")
         self.assertIn("private_events", response.context)
 
-    @patch("events.views.UserConnectionsService.get_user_connections")
-    @patch("events.views.EventAnalyticsService.get_event_stats")
-    @patch("events.views.EventAnalyticsService.get_social_stats")
-    def test_event_detail_view(
-            self,
-            mock_social,
-            mock_stats,
-            mock_connections
-    ):
-        mock_connections.return_value = []
-        mock_stats.return_value = {}
-        mock_social.return_value = {}
+    @patch("events.views.EventDetailContextService.build_context")
+    def test_event_detail_view(self, mock_build_context):
+        # Provide the keys your template expects
+        mock_build_context.return_value = {
+            "invite_type": "event",
+            "sender_id": 1,
+            "categories": [],
+            "can_delete_event": False,
+            "transaction_form": None,
+            "content_type": "event",
+            "object_id": 1,
+            "user_role": None,
+            "connects": [],
+            "members": [],
+        }
 
         EventMembership.objects.create(
             event=self.event,
@@ -55,18 +58,16 @@ class EventViewsTestCase(TestCase):
         )
 
         response = self.client.get(
-            reverse(
-                "events:event-detail",
-                kwargs={"pk": self.event.pk}
-            )
+            reverse("events:event-detail", kwargs={"pk": self.event.pk})
         )
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["object"].id, self.event.id)
 
-        mock_connections.assert_called_once_with(self.user.id, "accepted")
-        mock_stats.assert_called_once()
-        mock_social.assert_called_once()
+        mock_build_context.assert_called_once_with(
+            event=self.event,
+            user=self.user
+        )
 
     @patch("events.views.EventInvitationService.create_event_invitation")
     @patch("events.views.UserConnectionsService.get_user_connections")

@@ -1,7 +1,11 @@
 from decimal import Decimal
+from typing import Any
 
 from django.conf import settings
 from django.db import models, transaction
+from django.db.models import Q
+from django.db.models.aggregates import Sum
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from django.core.exceptions import ValidationError
@@ -52,7 +56,7 @@ class Budget(models.Model):
     def get_owner(self) -> str:
         return self.owner
 
-    def get_budget_data(self):
+    def get_budget_data(self) -> dict[str, Any]:
         return {
             "total_income": self.total_income,
             "total_expenses": self.total_expenses,
@@ -61,7 +65,7 @@ class Budget(models.Model):
             "planned_amount": self.planned_amount,
         }
 
-    def clean(self):
+    def clean(self) -> None:
         for field in (
                 "total_income",
                 "total_expenses",
@@ -73,26 +77,31 @@ class Budget(models.Model):
                 raise ValidationError({field: "Must be non-negative."})
 
     @transaction.atomic
-    def recalc(self, save: bool = True):
-        incomes = self.transactions.filter(
-            transaction_type=Transaction.Types.INCOME
-        ).aggregate(
-            total=models.Sum("amount")
-        )["total"] or Decimal("0.00")
+    def recalc(self, save: bool = True) -> None:
+        Budget.objects.select_for_update().get(pk=self.pk)
 
-        expenses = self.transactions.filter(
-            transaction_type=Transaction.Types.EXPENSE
-        ).aggregate(
-            total=models.Sum("amount")
-        )["total"] or Decimal("0.00")
-        amount = self.start_amount or Decimal("0.00")
-        current_amount = amount + incomes - expenses
+        aggregates = self.transactions.aggregate(
+            incomes=Coalesce(
+                Sum("amount",
+                    filter=Q(transaction_type=Transaction.Types.INCOME)),
+                Decimal("0.00"),
+            ),
+            expenses=Coalesce(
+                Sum("amount",
+                    filter=Q(transaction_type=Transaction.Types.EXPENSE)),
+                Decimal("0.00"),
+            ),
+        )
+
+        incomes = aggregates["incomes"]
+        expenses = aggregates["expenses"]
+
         self.total_income = incomes
         self.total_expenses = expenses
-        self.current_amount = current_amount
+        self.current_amount = (self.start_amount or Decimal(
+            "0.00")) + incomes - expenses
 
         if save:
-            self.full_clean()
             self.save(
                 update_fields=[
                     "total_income",
@@ -166,17 +175,17 @@ class Transaction(models.Model):
         return (f"{self.get_transaction_type_display()} {self.amount} "
                 f"-> {self.target}")
 
-    def get_short_description(self):
+    def get_short_description(self) -> str:
         return (f"{self.amount} -> {self.transaction_type}, "
-                f"from {self.payer.username}")
+                f"from {self.payer.username} ({self.date.date()})")
 
-    def get_full_description(self):
+    def get_full_description(self) -> str:
         return (f"{self.amount} -> {self.transaction_type}, "
                 f"from {self.payer.username} "
                 f"to {self.target.get_owner()} "
                 f"at {self.date}")
 
-    def clean(self):
+    def clean(self) -> None:
         if self.category and self.transaction_type:
             if (
                     self.category.category_type == Category.Types.INCOME
@@ -197,6 +206,6 @@ class Transaction(models.Model):
                                     "with transaction type. (EXPENSE)"}
                 )
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs) -> None:
         self.full_clean()
         super().save(*args, **kwargs)

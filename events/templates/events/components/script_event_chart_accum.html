@@ -1,0 +1,32 @@
+<script>
+    const accumulativeEventChart = document.getElementById('accumulativeEventChart').getContext('2d');
+
+    new Chart(accumulativeEventChart, {
+        type: 'line',
+        data: {
+            labels: {{ accum_chart_data.labels|safe }},
+            datasets: [
+                {
+                    label: 'Projected balance',
+                    data: {{ accum_chart_data.project_points|safe }},
+                    borderColor: '#0016ff',
+                    tension: 0.3
+                },
+                {
+                    label: 'Actual daily expense',
+                    data: {{ accum_chart_data.real_points|safe }},
+                    borderColor: '#ff0000',
+                    tension: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>

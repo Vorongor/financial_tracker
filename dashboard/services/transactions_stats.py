@@ -7,7 +7,7 @@ from django.db.models import (
     Value,
     DecimalField,
     Count,
-    Avg
+    Avg, QuerySet
 )
 from django.db.models.functions import TruncDay
 
@@ -25,13 +25,16 @@ from dashboard.DTO import (
 
 class TransactionStatsService:
     @classmethod
-    def _base_queryset(cls, ctx: AnalyticsContext):
+    def _base_queryset(cls, ctx: AnalyticsContext) -> QuerySet[Transaction]:
         return Transaction.objects.filter(
             target_id=ctx.target_budget_id,
         )
 
     @classmethod
-    def get_range_queryset(cls, ctx: AnalyticsContext):
+    def get_range_queryset(
+            cls,
+            ctx: AnalyticsContext
+    ) -> QuerySet[Transaction]:
         return cls._base_queryset(ctx).filter(
             date__range=(ctx.date_from, ctx.date_to), )
 
@@ -137,7 +140,11 @@ class TransactionStatsService:
         )
 
     @classmethod
-    def get_category_stats(cls, ctx: AnalyticsContext, transaction_type):
+    def get_category_stats(
+            cls,
+            ctx: AnalyticsContext,
+            transaction_type: str
+    ) -> PieDiagramSegment:
         qs = (
             cls._base_queryset(ctx)
             .filter(transaction_type=transaction_type)

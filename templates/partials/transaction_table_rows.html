@@ -15,8 +15,8 @@
       {% endif %}
     </td>
     <td>{{ transaction.payer.username }}</td>
-    <td class="fw-bold {% if transaction.type == 'Income' %}text-success{% else %}text-danger{% endif %}">
-      {% if transaction.type == 'Income' %}+{% else %}
+    <td class="fw-bold {% if transaction.transaction_type == 'Income' %}text-success{% else %}text-danger{% endif %}">
+      {% if transaction.transaction_type == 'Income' %}+{% else %}
         -{% endif %}{{ transaction.amount }}
     </td>
     <td class="text-end">

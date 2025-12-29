@@ -1,7 +1,10 @@
+from typing import Any
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
+from django.http import HttpResponse, HttpRequest, HttpResponseBase
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views import View
@@ -27,12 +30,12 @@ from groups.services.group_invitation import GroupInvitationService
 class GroupsHomeView(LoginRequiredMixin, TemplateView):
     template_name = "groups-home.html"
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         user = self.request.user
         groups = Group.objects.filter(
             Q(creator=user)
-            | Q(groupslink__user=user, groupslink__status=Status.ACCEPTED)
+            | Q(memberships__user=user, memberships__status=Status.ACCEPTED)
         ).distinct()
         context["groups"] = groups
 
@@ -48,12 +51,12 @@ class GroupCreateView(LoginRequiredMixin, CreateView):
     form_class = GroupCreateForm
     success_url = reverse_lazy("groups:home")
 
-    def get_form_kwargs(self):
+    def get_form_kwargs(self) -> dict[str, Any]:
         kwargs = super().get_form_kwargs()
         kwargs["user"] = self.request.user
         return kwargs
 
-    def form_valid(self, form):
+    def form_valid(self, form) -> HttpResponse:
         self.object = form.save(commit=False)
         self.object.creator = self.request.user
         self.object.save()
@@ -77,7 +80,7 @@ class GroupCreateView(LoginRequiredMixin, CreateView):
 class GroupDetailView(LoginRequiredMixin, SuccessUrlFromNextMixin, DetailView):
     model = Group
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         group = self.object
         user = self.request.user
@@ -141,7 +144,7 @@ class GroupDetailView(LoginRequiredMixin, SuccessUrlFromNextMixin, DetailView):
 class GroupEditView(LoginRequiredMixin, View):
     template_name = "groups/group_update.html"
 
-    def get(self, request, pk):
+    def get(self, request: HttpRequest, pk: int) -> HttpResponse:
         group = get_object_or_404(Group, pk=pk)
         budget = group.budget
 
@@ -156,7 +159,7 @@ class GroupEditView(LoginRequiredMixin, View):
         )
 
     @transaction.atomic
-    def post(self, request, pk):
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
         group = get_object_or_404(Group, pk=pk)
         budget = group.budget
 
@@ -186,11 +189,13 @@ class GroupDeleteView(LoginRequiredMixin, DeleteView):
 
 
 class GroupInviteMemberView(LoginRequiredMixin, View):
-    def post(self, request, pk, user_id):
+    def post(
+            self,
+            request: HttpRequest,
+            pk: int,
+            user_id: int
+    ) -> HttpResponse:
         group = get_object_or_404(Group, pk=pk)
-
-        if not group:
-            raise ValidationError("Group not found")
 
         GroupInvitationService.create_group_invitation(
             group_id=group.id,
@@ -202,11 +207,13 @@ class GroupInviteMemberView(LoginRequiredMixin, View):
 
 
 class GroupAcceptInviteView(LoginRequiredMixin, View):
-    def post(self, request, pk, user_id):
+    def post(
+            self,
+            request: HttpRequest,
+            pk: int,
+            user_id: int
+    ) -> HttpResponse:
         group = get_object_or_404(Group, pk=pk)
-
-        if not group:
-            raise ValidationError("Group not found")
 
         GroupInvitationService.accept_group_invitation(
             group_id=group.id,
@@ -216,11 +223,14 @@ class GroupAcceptInviteView(LoginRequiredMixin, View):
 
 
 class GroupRejectInviteView(LoginRequiredMixin, View):
-    def post(self, request, pk, user_id, stay):
+    def post(
+            self,
+            request: HttpRequest,
+            pk: int,
+            user_id: int,
+            stay: str
+    ) -> HttpResponse:
         group = get_object_or_404(Group, pk=pk)
-
-        if not group:
-            raise ValidationError("Group not found")
 
         GroupInvitationService.reject_group_invitation(
             group_id=group.id,
@@ -234,11 +244,9 @@ class GroupRejectInviteView(LoginRequiredMixin, View):
 
 
 class GroupPromoteView(LoginRequiredMixin, View):
-    def post(self, request, pk, user_id):
+    def post(self, request: HttpRequest, pk: int,
+             user_id: int) -> HttpResponse:
         group = get_object_or_404(Group, pk=pk)
-
-        if not group:
-            raise ValidationError("Group not found")
 
         GroupInvitationService.promote_group_member(
             group_id=group.id,
@@ -248,11 +256,13 @@ class GroupPromoteView(LoginRequiredMixin, View):
 
 
 class GroupDemoteView(LoginRequiredMixin, View):
-    def post(self, request, pk, user_id):
+    def post(
+            self,
+            request: HttpRequest,
+            pk: int,
+            user_id: int
+    ) -> HttpResponse:
         group = get_object_or_404(Group, pk=pk)
-
-        if not group:
-            raise ValidationError("Group not found")
 
         GroupInvitationService.demote_group_member(
             group_id=group.id,
@@ -262,7 +272,7 @@ class GroupDemoteView(LoginRequiredMixin, View):
 
 
 class LeaveGroupView(LoginRequiredMixin, View):
-    def post(self, request, group_id):
+    def post(self, request: HttpRequest, group_id: int) -> HttpResponse:
         GroupInvitationService.leave_group(
             group_id=group_id,
             user_id=request.user.id
@@ -275,7 +285,12 @@ class GroupEventsCreateView(LoginRequiredMixin, CreateView):
     form_class = GroupEventCreateForm
     template_name = "groups/group-event_form.html"
 
-    def dispatch(self, request, *args, **kwargs):
+    def dispatch(
+            self,
+            request: HttpRequest,
+            *args,
+            **kwargs
+    ) -> HttpResponseBase:
         self.group = get_object_or_404(Group, pk=kwargs["group_id"])
 
         if not GroupMembership.objects.filter(
@@ -285,13 +300,13 @@ class GroupEventsCreateView(LoginRequiredMixin, CreateView):
 
         return super().dispatch(request, *args, **kwargs)
 
-    def get_form_kwargs(self):
+    def get_form_kwargs(self) -> dict[str, Any]:
         kwargs = super().get_form_kwargs()
         kwargs["user"] = self.request.user
         kwargs["group"] = self.group
         return kwargs
 
-    def form_valid(self, form):
+    def form_valid(self, form) -> HttpResponse:
         event = form.save(commit=False)
         event.creator = self.request.user
         event.accessibility = Event.Accessibility.GROUP

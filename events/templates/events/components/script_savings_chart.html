@@ -1,0 +1,32 @@
+<script> const savingsEventCXT = document.getElementById('savingsEventChart').getContext('2d');
+new Chart(savingsEventCXT, {
+    type: 'line',
+    data: {
+        labels: {{ savings_chart_data_json.labels|safe }},
+        datasets: [{
+            label: 'Net Balance',
+            data: {{ savings_chart_data_json.data_points|safe }},
+            borderColor: '#0016ff',
+            backgroundColor: 'rgba(13, 202, 240, 0.1)',
+            fill: true,
+            tension: 0,
+            pointRadius: 5
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                suggestedMin: -100,
+                suggestedMax: 100,
+                grid: {
+                    color: (context) => context.tick.value === 0 ? '#000' : '#e5e5e5',
+                    lineWidth: (context) => context.tick.value === 0 ? 2 : 1
+                }
+            }
+        },
+        plugins: {legend: {display: false}}
+    }
+}); </script>

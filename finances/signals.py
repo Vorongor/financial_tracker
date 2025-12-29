@@ -13,7 +13,12 @@ User = get_user_model()
 
 
 @receiver(post_save, sender=User)
-def create_budget_for_user(sender, instance, created, **kwargs):
+def create_budget_for_user(
+        sender,
+        instance: User,
+        created: bool,
+        **kwargs
+) -> None:
     if created:
         ct = ContentType.objects.get_for_model(instance)
 
@@ -27,7 +32,12 @@ def create_budget_for_user(sender, instance, created, **kwargs):
 
 
 @receiver(post_save, sender=Group)
-def create_budget_for_group(sender, instance, created, **kwargs):
+def create_budget_for_group(
+        sender,
+        instance: Group,
+        created: bool,
+        **kwargs
+) -> None:
     if created:
         ct = ContentType.objects.get_for_model(instance)
 
@@ -41,7 +51,11 @@ def create_budget_for_group(sender, instance, created, **kwargs):
 
 
 @receiver(post_save, sender=Event)
-def create_budget_for_event(sender, instance, created, **kwargs):
+def create_budget_for_event(
+        sender,
+        instance: Event,
+        created: bool,
+        **kwargs) -> None:
     if created:
         ct = ContentType.objects.get_for_model(instance)
 
@@ -52,3 +66,9 @@ def create_budget_for_event(sender, instance, created, **kwargs):
                 "planned_amount": instance.planned_amount,
             },
         )
+
+
+@receiver([post_save, post_delete], sender=Transaction)
+def update_budget_on_change(sender, instance: Transaction, **kwargs) -> None:
+    if instance.target:
+        instance.target.recalc()

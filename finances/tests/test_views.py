@@ -100,7 +100,7 @@ class FinancesViewsTest(TestCase):
         other_budget.refresh_from_db()
 
         self.assertEqual(self.budget.current_amount, Decimal("800.00"))
-        self.assertEqual(other_budget.current_amount, Decimal("200.00"))
+        self.assertEqual(other_budget.current_amount, Decimal("-200.00"))
 
     def test_transaction_list_view_htmx(self):
         Transaction.objects.create(

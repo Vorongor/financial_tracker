@@ -1,8 +1,10 @@
+from typing import Any
+
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, QuerySet
+from django.http import HttpResponseRedirect, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -10,14 +12,16 @@ from django.views import View
 from django.views.generic import (
     TemplateView,
     UpdateView,
-    ListView, DetailView, DeleteView,
+    ListView,
+    DeleteView,
 )
 
 from finances.models import Budget, Transaction, Category
 from finances.forms import (
     UpdateBudgetForm,
     TransferCreateForm,
-    TopUpBudgetForm, SetExpenseBudgetForm
+    TopUpBudgetForm,
+    SetExpenseBudgetForm
 )
 from finances.services.history_service import TransactionHistoryService
 from finances.services.transfers_service import TransfersService
@@ -25,9 +29,11 @@ from finances.services.transfers_service import TransfersService
 User = get_user_model()
 
 
-def get_back_url(instance) -> str:
-    return reverse_lazy("profile-page",
-                        kwargs={"pk": instance.request.user.pk})
+def get_back_url(instance) -> HttpResponseRedirect:
+    return reverse_lazy(
+        "profile-page",
+        kwargs={"pk": instance.request.user.pk}
+    )
 
 
 class FinancesHomeView(TemplateView):
@@ -39,73 +45,87 @@ class BudgetUpdateView(LoginRequiredMixin, UpdateView):
     form_class = UpdateBudgetForm
     template_name = "budget_form.html"
 
-    def get_success_url(self):
+    def get_success_url(self) -> HttpResponseRedirect:
         return get_back_url(self)
 
 
-class TransferCreateView(
-    LoginRequiredMixin,
-    View,
-):
+class BaseTransferActionView(LoginRequiredMixin, View):
+    form_class = None
 
-    def post(self, request, content_type, object_id):
-        form = TransferCreateForm(request.POST)
+    def get_service_kwargs(
+            self,
+            form,
+            request: HttpRequest,
+            **kwargs
+    ) -> dict[str, Any]:
+        """Override this to pass specific data to the service method."""
+        return {
+            "amount": form.cleaned_data["amount"],
+            "category": form.cleaned_data.get("category"),
+            "note": form.cleaned_data.get("note", ""),
+            "date": form.cleaned_data.get("date") or timezone.now().date(),
+        }
+
+    def execute_service(self, service_kwargs) -> None:
+        """Override this to call the specific TransfersService method."""
+        raise NotImplementedError("Subclasses must implement execute_service")
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        form = self.form_class(request.POST)
 
         if not form.is_valid():
             messages.error(request, "Invalid data")
-            return redirect(request.META.get("HTTP_REFERER"))
+            return redirect(request.META.get("HTTP_REFERER", "/"))
 
         try:
-            to_budget = TransfersService.get_budget_by_content_type(
-                content_type,
-                object_id
+            service_kwargs = self.get_service_kwargs(form, request, **kwargs)
+            self.execute_service(service_kwargs)
+            messages.success(
+                request,
+                "Transaction processed successfully"
             )
-            TransfersService.transfer_between_budgets(
-                amount=form.cleaned_data["amount"],
-                from_budget=request.user.budget,
-                to_budget=to_budget,
-                payer=request.user,
-                date=form.cleaned_data.get("date") or timezone.now().date(),
-                category=form.cleaned_data.get("category"),
-                note=form.cleaned_data.get("note", ""),
-            )
-            messages.success(request, "Transaction created successfully")
         except ValueError as e:
             messages.error(request, str(e))
 
-        return redirect(request.META.get("HTTP_REFERER"))
-
-
-class TopUpBudgetView(LoginRequiredMixin, View):
-    def post(self, request, *args, **kwargs):
-        form = TopUpBudgetForm(request.POST)
-        if form.is_valid():
-            TransfersService.top_up_budget(
-                user=request.user,
-                amount=form.cleaned_data["amount"],
-                category=form.cleaned_data.get("category"),
-                note=form.cleaned_data.get("note", ""),
-                date=form.cleaned_data.get("date") or timezone.now().date(),
-            )
-            return redirect(request.META.get("HTTP_REFERER", "/"))
-
         return redirect(request.META.get("HTTP_REFERER", "/"))
 
 
-class SetExpenseBudgetView(LoginRequiredMixin, View):
-    def post(self, request, *args, **kwargs):
-        form = SetExpenseBudgetForm(request.POST)
-        if form.is_valid():
-            TransfersService.set_expense(
-                user=request.user,
-                amount=form.cleaned_data["amount"],
-                category=form.cleaned_data.get("category"),
-                note=form.cleaned_data.get("note", ""),
-                date=form.cleaned_data.get("date") or timezone.now().date(),
-            )
-            return redirect(request.META.get("HTTP_REFERER", "/"))
+class TransferCreateView(BaseTransferActionView):
+    form_class = TransferCreateForm
 
-        return redirect(request.META.get("HTTP_REFERER", "/"))
+    def get_service_kwargs(
+            self,
+            form,
+            request: HttpRequest,
+            **kwargs
+    ) -> dict[str, Any]:
+        data = super().get_service_kwargs(form, request, **kwargs)
+        data["to_budget"] = TransfersService.get_budget_by_content_type(
+            kwargs['content_type'], kwargs['object_id']
+        )
+        data["from_budget"] = request.user.budget
+        data["payer"] = request.user
+        return data
+
+    def execute_service(self, service_kwargs):
+        TransfersService.transfer_between_budgets(**service_kwargs)
+
+
+class TopUpBudgetView(BaseTransferActionView):
+    form_class = TopUpBudgetForm
+
+    def execute_service(self, service_kwargs) -> None:
+        TransfersService.top_up_budget(
+            user=self.request.user,
+            **service_kwargs
+        )
+
+
+class SetExpenseBudgetView(BaseTransferActionView):
+    form_class = SetExpenseBudgetForm
+
+    def execute_service(self, service_kwargs) -> None:
+        TransfersService.set_expense(user=self.request.user, **service_kwargs)
 
 
 class TransactionListView(LoginRequiredMixin, ListView):
@@ -115,7 +135,7 @@ class TransactionListView(LoginRequiredMixin, ListView):
 
     paginate_by = 20
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Transaction]:
         target = self.kwargs.get("target")
         pk = self.kwargs.get("pk")
 
@@ -151,20 +171,20 @@ class TransactionListView(LoginRequiredMixin, ListView):
 
         return queryset
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context["target"] = self.kwargs.get("target")
         context["pk"] = self.kwargs.get("pk")
         return context
 
-    def get_template_names(self):
+    def get_template_names(self) -> list[str]:
         if self.request.headers.get("HX-Request"):
             return ["partials/transaction_table_rows.html"]
         return [self.template_name]
 
 
 class CategoryOptionsView(LoginRequiredMixin, View):
-    def get(self, request, *args, **kwargs):
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         category_type = (kwargs.get("transaction_type")
                          or request.GET.get("transaction_type"))
 
@@ -186,7 +206,7 @@ class CategoryOptionsView(LoginRequiredMixin, View):
 class TransactionDeleteView(LoginRequiredMixin, DeleteView):
     model = Transaction
 
-    def get_success_url(self):
+    def get_success_url(self) -> HttpResponseRedirect:
         return reverse_lazy(
             "transfer-history",
             kwargs={"target": "user", "pk": self.request.user.pk}

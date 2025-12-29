@@ -43,7 +43,7 @@ class EventAnalyticsServiceTest(TestCase):
         )
 
     def test_event_stats_percent_and_color(self):
-        result = EventAnalyticsService.get_event_stats(
+        result = EventAnalyticsService.get_event_accumulative_stats(
             self.event, self.budget
         )
 
@@ -54,14 +54,14 @@ class EventAnalyticsServiceTest(TestCase):
         self.budget.current_amount = Decimal("2000")
         self.budget.save()
 
-        result = EventAnalyticsService.get_event_stats(
+        result = EventAnalyticsService.get_event_accumulative_stats(
             self.event, self.budget
         )
 
         self.assertEqual(result["percent"], 100)
 
     def test_event_stats_labels_and_points_length(self):
-        result = EventAnalyticsService.get_event_stats(
+        result = EventAnalyticsService.get_event_accumulative_stats(
             self.event, self.budget
         )
 
@@ -73,7 +73,7 @@ class EventAnalyticsServiceTest(TestCase):
         self.create_transaction(amount="200", days_ago=5, payer=self.user2)
         self.create_transaction(amount="50", days_ago=1, payer=self.user1)
 
-        result = EventAnalyticsService.get_event_stats(
+        result = EventAnalyticsService.get_event_accumulative_stats(
             self.event, self.budget
         )
 

@@ -4,6 +4,8 @@ from django.db import transaction
 from django.contrib.auth import get_user_model
 from faker import Faker
 from events.models import Event, EventMembership
+from datetime import timedelta
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -17,6 +19,17 @@ class Command(BaseCommand):
         fake = Faker(["en_US"])
         users = list(User.objects.all())
 
+        def generate_valid_dates():
+            start = fake.date_between_dates(
+                date_start=timezone.now().date() - timedelta(days=60),
+                date_end=timezone.now().date() + timedelta(days=30),
+            )
+            end = fake.date_between_dates(
+                date_start=start,
+                date_end=start + timedelta(days=365),
+            )
+            return start, end
+
         if not users:
             self.stdout.write(
                 self.style.ERROR("Create users first!"))
@@ -28,16 +41,32 @@ class Command(BaseCommand):
             with transaction.atomic():
                 for user in users:
                     for _ in range(random.randint(1, 4)):
+                        event_type = random.choice(Event.EventType.choices)[0]
+
+                        # planned amount always > 0
+                        planned_amount = random.randint(1, 500000)
+
+                        # Dates depend on event type
+                        if event_type in [
+                            Event.EventType.EXPENSES,
+                            Event.EventType.ACCUMULATIVE
+                        ]:
+                            start_date, end_date = generate_valid_dates()
+                        else:
+                            start_date = fake.date_this_year()
+                            end_date = None
+
                         event = Event.objects.create(
-                            name=f"Personal goal: {fake.word().capitalize()}",
-                            description=fake.sentence(),
-                            planned_amount=random.randint(1000, 50000),
-                            event_type=random.choice(Event.EventType.choices)[
-                                0],
+                            name=fake.sentence(nb_words=3),
+                            description=fake.text(),
+                            planned_amount=planned_amount,
+                            event_type=event_type,
                             status=random.choice(Event.EventStatus.choices)[0],
                             accessibility=Event.Accessibility.PRIVATE,
+                            # or PUBLIC in second block
                             creator=user,
-                            start_date=fake.date_this_year(),
+                            start_date=start_date,
+                            end_date=end_date,
                         )
                         EventMembership.objects.create(
                             event=event,
@@ -52,15 +81,31 @@ class Command(BaseCommand):
                 # Generate Public Events
                 for i in range(80):
                     creator = random.choice(users)
+                    event_type = random.choice(Event.EventType.choices)[0]
+
+                    # planned amount always > 0
+                    planned_amount = random.randint(1, 50000)
+
+                    # Dates depend on event type
+                    if event_type in [
+                        Event.EventType.EXPENSES,
+                        Event.EventType.ACCUMULATIVE
+                    ]:
+                        start_date, end_date = generate_valid_dates()
+                    else:
+                        start_date = fake.date_this_year()
+                        end_date = None
+
                     event = Event.objects.create(
-                        name=f"Public collection: {fake.bs().capitalize()}",
-                        description=fake.paragraph(nb_sentences=2),
-                        planned_amount=random.randint(50000, 500000),
-                        event_type=random.choice(Event.EventType.choices)[0],
+                        name=fake.sentence(nb_words=3),
+                        description=fake.text(),
+                        planned_amount=planned_amount,
+                        event_type=event_type,
                         status=random.choice(Event.EventStatus.choices)[0],
                         accessibility=Event.Accessibility.PUBLIC,
-                        creator=creator,
-                        start_date=fake.date_this_year(),
+                        creator=user,
+                        start_date=start_date,
+                        end_date=end_date,
                     )
 
                     EventMembership.objects.create(

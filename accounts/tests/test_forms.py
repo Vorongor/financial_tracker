@@ -12,12 +12,6 @@ class UserRegisterFormTest(TestCase):
             email="bob@test.com"
         )
 
-    def test_form_has_custom_fields(self):
-        form = UserRegisterForm()
-        expected_fields = ["job", "salary", "default_currency"]
-        for field in expected_fields:
-            self.assertIn(field, form.fields)
-
     def test_username_uniqueness_validation(self):
         data = {
             "username": "existing_bob",
@@ -32,11 +26,6 @@ class UserRegisterFormTest(TestCase):
         self.assertIn(
             "This username is already taken.",
             form.errors["username"])
-
-    def test_salary_negative_value(self):
-        data = {"salary": -100}
-        form = UserRegisterForm(data=data)
-        self.assertIn("salary", form.errors)
 
 
 class UserUpdateFormTest(TestCase):

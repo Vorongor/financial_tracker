@@ -3,7 +3,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 
 
 class SuccessUrlFromNextMixin:
-    def get_success_url(self):
+    def get_success_url(self) -> str | None:
         next_url = (self.request.POST.get("next")
                     or self.request.GET.get("next"))
 

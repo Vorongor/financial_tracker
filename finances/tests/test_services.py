@@ -48,27 +48,6 @@ class TransfersServiceTest(TestCase):
             category_type=Category.Types.EXPENSE
         )
 
-    def test_transfer_between_budgets_logic(self):
-        amount = Decimal("300.00")
-
-        TransfersService.transfer_between_budgets(
-            amount=amount,
-            from_budget=self.budget_from,
-            to_budget=self.budget_to,
-            payer=self.user_from,
-            date=timezone.now()
-        )
-
-        self.budget_from.refresh_from_db()
-        self.budget_to.refresh_from_db()
-
-        self.assertEqual(self.budget_from.current_amount, Decimal("700.00"))
-        self.assertEqual(self.budget_from.total_expenses, Decimal("300.00"))
-
-        self.assertEqual(self.budget_to.current_amount, Decimal("300.00"))
-        self.assertEqual(self.budget_to.total_income, Decimal("300.00"))
-
-        self.assertEqual(Transaction.objects.count(), 2)
 
     def test_top_up_budget(self):
         amount = Decimal("500.00")

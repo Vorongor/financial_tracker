@@ -1,4 +1,5 @@
 from _datetime import datetime
+from typing import Any
 
 from django.utils import timezone
 from django.views.generic import TemplateView
@@ -15,7 +16,7 @@ class HomeDashboard(TemplateView):
 class PersonalDashView(TemplateView):
     template_name = "dashboard/personal-dash.html"
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super(PersonalDashView, self).get_context_data(**kwargs)
 
         user = self.request.user
@@ -69,7 +70,7 @@ class PersonalDashView(TemplateView):
 class PersonalDashStatsView(TemplateView):
     template_name = "dashboard/components/stats_block.html"
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
 
         user = self.request.user

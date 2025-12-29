@@ -7,7 +7,11 @@ from .models import Event
 
 class EventPrivateCreateForm(forms.ModelForm):
     participants = forms.MultipleChoiceField(
-        required=False, widget=forms.CheckboxSelectMultiple
+        required=False, widget=forms.CheckboxSelectMultiple(
+            attrs={
+                "class": "form-check-input",
+            }
+        ),
     )
 
     class Meta:
@@ -66,25 +70,37 @@ class EventPrivateCreateForm(forms.ModelForm):
                 c.other_user(user).username) for c in connections
         ]
 
-    def clean(self):
+    def clean(self) -> None:
         cleaned_data = super().clean()
 
-        start_date = cleaned_data.get("start_date")
-        end_date = cleaned_data.get("end_date")
+        start_date = cleaned_data.get("start_date", None)
+        end_date = cleaned_data.get("end_date", None)
         planned_amount = cleaned_data.get("planned_amount")
+        event_type = cleaned_data.get("event_type")
 
-        if start_date and end_date and start_date > end_date:
-            raise forms.ValidationError(
-                "End date cannot be earlier than start date."
-            )
+        if (event_type == Event.EventType.EXPENSES
+                or event_type == Event.EventType.ACCUMULATIVE):
+            if planned_amount is not None and planned_amount <= 0:
+                raise forms.ValidationError(
+                    "Planned amount must be greate than zero"
+                )
+            if start_date is None:
+                raise forms.ValidationError(
+                    "You must provide start and end date for planning Expenses"
+                )
+            if end_date is None:
+                raise forms.ValidationError(
+                    "You must provide start and end date for planning Expenses"
+                )
 
-        if planned_amount is not None and planned_amount < 0:
-            raise forms.ValidationError(
-                "Planned amount must be zero or positive."
-            )
+            if start_date and end_date and start_date > end_date:
+                raise forms.ValidationError(
+                    "End date cannot be earlier than start date."
+                )
+
         return cleaned_data
 
-    def save(self, commit=True):
+    def save(self, commit: bool = True) -> Event:
         event = super().save(commit=False)
         if commit:
             event.save()

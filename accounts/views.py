@@ -1,9 +1,11 @@
+from typing import Any
+
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
-from django.db.models import Q, OuterRef, Subquery, Case, When, Value, \
-    BooleanField
+from django.db.models import Q, QuerySet
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views import View
@@ -51,54 +53,70 @@ class ProfileView(LoginRequiredMixin, DetailView):
     model = get_user_model()
     template_name = "profile/profile_detail.html"
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         user = self.object
 
-        try:
-            user_budget = user.budget
-        except Budget.DoesNotExist:
-            user_budget = None
+        user_budget = user.budget
 
-        if user_budget:
-            context[
-                "transaction_history"
-            ] = user_budget.transactions.select_related(
-                "category", "payer"
-            ).all()[:15]
-            context["current_budget"] = user_budget.get_budget_data()
+        context["transaction_history"] = (
+            user_budget.transactions
+            .select_related("category", "payer")
+            .order_by("-date", "-timestamp_create")[:15]
+        )
 
-        context["events"] = Event.objects.filter(
-            Q(creator=user) | Q(memberships__user=user)
-        ).select_related("creator").distinct()
+        context["current_budget"] = user_budget.get_budget_data()
 
-        context["groups"] = Group.objects.filter(
-            Q(creator=user) | Q(groupslink__user=user)
-        ).select_related("creator").distinct()
+        context["events"] = (
+            Event.objects.filter(
+                Q(creator=user) | Q(memberships__user=user)
+            )
+            .select_related("creator")
+            .prefetch_related("memberships__user")
+            .distinct()
+        )
 
-        context["take_to_connect"] = UserConnection.objects.filter(
-            from_user=user, status=UserConnection.Status.PENDING
-        ).select_related("to_user").distinct()
+        context["groups"] = (
+            Group.objects.filter(
+                Q(creator=user) | Q(memberships__user=user)
+            )
+            .select_related("creator")
+            .prefetch_related("memberships__user")
+            .distinct()
+        )
 
-        context["invite_to_connect"] = UserConnection.objects.filter(
-            to_user=user, status=UserConnection.Status.PENDING
-        ).select_related("from_user").distinct()
+        context["take_to_connect"] = (
+            UserConnection.objects.filter(
+                from_user=user,
+                status=UserConnection.Status.PENDING
+            )
+            .select_related("to_user")
+        )
+
+        context["invite_to_connect"] = (
+            UserConnection.objects.filter(
+                to_user=user,
+                status=UserConnection.Status.PENDING
+            )
+            .select_related("from_user")
+        )
 
         context["connections"] = UserConnectionsService.get_user_connections(
             user.id,
             "accepted"
         )
 
-        categories = Category.objects.all()
+        categories = list(
+            Category.objects.filter(is_active=True)
+            .order_by("order_index", "name")
+        )
 
-        context["categories_income"] = categories.filter(
-            category_type=Category.Types.INCOME,
-            is_active=True
-        )
-        context["categories_expense"] = categories.filter(
-            category_type=Category.Types.EXPENSE,
-            is_active=True
-        )
+        context["categories_income"] = [
+            c for c in categories if c.category_type == Category.Types.INCOME
+        ]
+        context["categories_expense"] = [
+            c for c in categories if c.category_type == Category.Types.EXPENSE
+        ]
 
         context["top_up_form"] = TopUpBudgetForm()
 
@@ -110,7 +128,7 @@ class UpdateProfileView(LoginRequiredMixin, UpdateView):
     form_class = UserUpdateForm
     template_name = "profile/update_form.html"
 
-    def get_success_url(self):
+    def get_success_url(self) -> str:
         return reverse_lazy("profile-page", kwargs={"pk": self.object.pk})
 
 
@@ -119,7 +137,7 @@ class DeleteProfileView(LoginRequiredMixin, DeleteView):
     template_name = "profile/user_confirm_delete.html"
     success_url = reverse_lazy("login")
 
-    def delete(self, request, *args, **kwargs):
+    def delete(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         self.object = self.get_object()
         messages.success(
             request,
@@ -135,12 +153,12 @@ class CommunityListView(LoginRequiredMixin, ListView):
     template_name = "community/community_list.html"
     context_object_name = "other_users"
 
-    def get_template_names(self):
+    def get_template_names(self) -> str:
         if self.request.headers.get("HX-Request"):
             return "partials/user_table_rows.html"
         return self.template_name
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[UserConnection]:
         query = self.request.GET.get("q", "")
         self.request.GET.get("status", "")
 
@@ -163,39 +181,29 @@ class CommunityListView(LoginRequiredMixin, ListView):
             )
         return queryset
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
+
         query = self.request.GET.get("q", "")
         status_filter = self.request.GET.get("status", "")
 
         connections = UserConnectionsService.get_user_connections(
-            self.request.user.id)
-
-        if status_filter:
-            connections = [c for c in connections if c.status == status_filter]
-
-        if query:
-            query = query.lower()
-            connections = [
-                con for con in connections
-                if (
-                    query in con.from_user.username.lower()
-                    or query in con.to_user.username.lower()
-                    or query in con.from_user.first_name.lower()
-                    or query in con.to_user.first_name.lower()
-                )
-            ]
+            user_id=self.request.user.id,
+            status=status_filter or None,
+            query=query or None,
+        )
 
         context["user_connections"] = connections
         context["status_choices"] = UserConnection.Status.choices
         context["uniq_key_form"] = UserKeyConnectForm()
-        context["content_type"] = "connection",
+        context["content_type"] = "connection"
         context["object_id"] = self.request.user.id
+
         return context
 
 
 class UserConnectView(LoginRequiredMixin, View):
-    def post(self, request, user_id):
+    def post(self, request: HttpRequest, user_id: int) -> HttpResponse:
         recipient = get_object_or_404(get_user_model(), pk=user_id)
 
         if recipient == request.user:
@@ -210,7 +218,7 @@ class UserConnectView(LoginRequiredMixin, View):
 
 
 class UserConnectApproveView(LoginRequiredMixin, View):
-    def post(self, request, connection_id):
+    def post(self, request: HttpRequest, connection_id: int) -> HttpResponse:
         UserInvitationService.approve_user_to_connect(
             connection_id=connection_id
         )
@@ -218,7 +226,7 @@ class UserConnectApproveView(LoginRequiredMixin, View):
 
 
 class UserConnectRejectView(LoginRequiredMixin, View):
-    def post(self, request, connection_id):
+    def post(self, request:HttpRequest, connection_id: int) -> HttpResponse:
         UserInvitationService.reject_user_to_connect(
             connection_id=connection_id
         )
@@ -227,7 +235,7 @@ class UserConnectRejectView(LoginRequiredMixin, View):
 
 
 class UserConnectBlockView(LoginRequiredMixin, View):
-    def post(self, request, connection_id):
+    def post(self, request: HttpRequest, connection_id: int) -> HttpResponse:
         UserInvitationService.block_user_to_connect(
             connection_id=connection_id
         )
@@ -236,7 +244,7 @@ class UserConnectBlockView(LoginRequiredMixin, View):
 
 
 class UserConnectUnblockView(LoginRequiredMixin, View):
-    def post(self, request, connection_id):
+    def post(self, request: HttpRequest, connection_id: int) -> HttpResponse:
         UserInvitationService.un_block_user_connect(
             connection_id=connection_id
         )
@@ -247,7 +255,12 @@ class UserConnectUnblockView(LoginRequiredMixin, View):
 
 
 class UserUkConnectView(LoginRequiredMixin, View):
-    def post(self, request, invite_type, sender_id):
+    def post(
+            self,
+            request: HttpRequest,
+            invite_type: str,
+            sender_id: int
+    ) -> HttpResponse:
         form = UserKeyConnectForm(request.POST)
 
         if not form.is_valid():

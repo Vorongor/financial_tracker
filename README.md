@@ -1,5 +1,5 @@
 ### 🧪 Test Accounts
-
+![Core structure UML diagram](addition_info/core_structure.svg)
 Use the following credentials to test functionality. All accounts have the same
 password.
 

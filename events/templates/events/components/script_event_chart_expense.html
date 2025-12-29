@@ -1,0 +1,32 @@
+<script>
+    const eventExpenseChart = document.getElementById('expensesChart').getContext('2d');
+
+    new Chart(eventExpenseChart, {
+        type: 'line',
+        data: {
+            labels: {{ expenses_chart_data.labels|safe }},
+            datasets: [
+                {
+                    label: 'Projected balance',
+                    data: {{ expenses_chart_data.project_points|safe }},
+                    borderColor: '#0016ff',
+                    tension: 0.3
+                },
+                {
+                    label: 'Actual daily expense',
+                    data: {{ expenses_chart_data.real_points|safe }},
+                    borderColor: '#ff0000',
+                    tension: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>

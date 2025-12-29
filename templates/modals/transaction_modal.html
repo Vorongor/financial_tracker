@@ -1,26 +1,29 @@
-<div class="modal fade" id="transactionModal" tabindex="-1">
+<div class="modal fade"
+     id="transactionModal"
+     tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
 
-      <form method="post"
-            action="{% url 'transfer-create' content_type=content_type object_id=object_id %}"
-            class="bg-dark text-white">
+
+      <form method="post" class="bg-dark text-white"
+            action="{% url "transfer-create" content_type=content_type object_id=object_id %}">
         {% csrf_token %}
 
         <div class="modal-header">
           <h5 class="modal-title">Create new transaction</h5>
+
           <button type="button" class="btn-close btn-close-white"
                   data-bs-dismiss="modal"></button>
         </div>
 
-        <div class="modal-body d-flex flex-column align-items-center
-justify-content-center g-5">
+        <div
+            class="modal-body d-flex flex-column align-items-center justify-content-center g-5">
           <div class="form-floating text-secondary mb-4 modal-form-field">
             <input type="number"
                    name="amount"
                    class="form-control {% if transaction_form.amount.errors %}is-invalid{% endif %}"
                    id="amountInput"
-                   value="{{ transaction_form.amount.value|default:'' }}"
+                   value="{{ transaction_form.amount.value|default:"" }}"
                    required>
             <label for="amountInput" class="text-dark">Set amount*</label>
             {% for error in transaction_form.amount.errors %}
@@ -42,28 +45,46 @@ justify-content-center g-5">
               <div class="invalid-feedback d-block">{{ error }}</div>
             {% endfor %}
           </div>
+          {% if event.event_type == "Savings" %}
+            <div class="form-floating text-secondary mb-4 modal-form-field">
+              <select name="transaction_type"
+                      class="form-select"
+                      id="typeInput"
+                      hx-get="{% url 'ajax_get_categories' %}"
+                      hx-trigger="load, change"
+                      hx-target="#categorySelect"
+                      hx-include="this">
+                {% for value, label in transaction_form.fields.transaction_type.choices %}
+                  <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+              <label for="typeInput">Type of transaction</label>
+            </div>
+          {% elif event.event_type == "Accumulative" %}
+            <input type="hidden" name="transaction_type" value="Income"
+                   id="typeInput"
+                   hx-get="{% url 'ajax_get_categories' %}"
+                   hx-trigger="load"
+                   hx-target="#categorySelect">
+          {% elif event.event_type == "Expenses" %}
+            <input type="hidden" name="transaction_type" value="Expense"
+                   id="typeInput"
+                   hx-get="{% url 'ajax_get_categories' %}"
+                   hx-trigger="load"
+                   hx-target="#categorySelect">
+          {% endif %}
 
           <div class="form-floating text-secondary mb-4 modal-form-field">
-            <select name="transaction_type"
-                    class="form-select"
-                    id="typeInput"
-                    hx-get="{% url "ajax_get_categories" %}"
-                    hx-trigger="change"
-                    hx-target="#categorySelect"
-                    hx-include="this">
-              {% for value, label in transaction_form.fields.transaction_type.choices %}
-                <option value="{{ value }}">{{ label }}</option>
-              {% endfor %}
-            </select>
-            <label for="typeInput">Type of transaction</label>
-          </div>
-
-          <div class="form-floating text-secondary mb-4 modal-form-field">
-            <select name="category" class="form-select" id="categorySelect">
-              {% include 'partials/categories_to_form.html' with categories=transaction_form.fields.category.queryset %}
+            <select
+                name="category"
+                class="form-select"
+                id="categorySelect"
+                required>
+              {% include 'partials/categories_to_form.html' with categories=categories %}
             </select>
             <label for="categorySelect">Category</label>
           </div>
+
           <div class="form-floating text-secondary mb-4 modal-form-field">
             <input type="text"
                    name="note"

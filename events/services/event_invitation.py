@@ -64,8 +64,6 @@ class EventInvitationService:
         invitation = EventMembership.objects.get(event_id=event_id,
                                                  user_id=user_id)
 
-        # place for future Exception/PermissionDenied
-
         invitation.role = Role.ADMIN
         invitation.save()
 

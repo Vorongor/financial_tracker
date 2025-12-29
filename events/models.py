@@ -3,6 +3,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.functional import cached_property
 
 from addition_info.choise_models import Role, Status
 
@@ -64,7 +65,7 @@ class Event(models.Model):
     def __str__(self):
         return f"Event: {self.name} - {self.status}"
 
-    def clean(self):
+    def clean(self) -> None:
         if (
                 self.start_date
                 and self.end_date
@@ -77,8 +78,8 @@ class Event(models.Model):
                 {"planned_amount": "planned_budget must be non-negative."}
             )
 
-    @property
-    def budget(self):
+    @cached_property
+    def budget(self) -> Budget:
         """
         Return the Budget instance for this User, or None.
         Expects at most one Budget due to unique constraint in Budget.meta.

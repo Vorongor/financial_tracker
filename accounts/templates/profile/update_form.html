@@ -103,13 +103,22 @@
           {% endfor %}
         </div>
         <div class="form-floating text-secondary mb-4">
-          <input type="text"
-                 name="default_currency"
-                 class="form-control {% if form.default_currency.errors %}is-invalid{% endif %}"
-                 id="DefaultCurrencyInput"
-                 value="{{ form.default_currency.value|default:'' }}"
-                 required>
+          <select
+              name="default_currency"
+              id="DefaultCurrencyInput"
+              class="form-select"
+              required
+          >
+            {% for value, label in form.default_currency.field.choices %}
+              <option value="{{ value }}"
+                      {% if form.instance.default_currency == value %}selected{% endif %}>
+                {{ label }}
+              </option>
+            {% endfor %}
+          </select>
+
           <label for="DefaultCurrencyInput">Default Currency</label>
+
           {% for error in form.default_currency.errors %}
             <div class="invalid-feedback d-block">{{ error }}</div>
           {% endfor %}

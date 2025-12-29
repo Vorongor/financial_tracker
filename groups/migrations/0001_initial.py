@@ -132,7 +132,7 @@ class Migration(migrations.Migration):
                     "group",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="groupslink",
+                        related_name="memberships",
                         to="groups.group",
                     ),
                 ),
@@ -140,7 +140,7 @@ class Migration(migrations.Migration):
                     "user",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="groupslink",
+                        related_name="groups_memberships",
                         to=settings.AUTH_USER_MODEL,
                     ),
                 ),

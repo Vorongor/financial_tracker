@@ -9,7 +9,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 
 from finances.models import Transaction, Budget, Category
-from finances.services.transfers_service import TransfersService
 from groups.models import Group
 from events.models import Event
 
@@ -17,7 +16,7 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help_tag = "Generates an array of transactions for the last six months"
+    help = "Generates transactions for users with optimized bulk creation"
 
     def handle(self, *args, **kwargs):
         users = User.objects.all()
@@ -33,110 +32,117 @@ class Command(BaseCommand):
                          Budget.objects.filter(content_type=event_type)}
 
         income_cats = list(Category.objects.filter(category_type=Category.Types.INCOME))
-        expense_cats = list(
-            Category.objects.filter(category_type=Category.Types.EXPENSE))
+        expense_cats = list(Category.objects.filter(category_type=Category.Types.EXPENSE))
 
         now = timezone.now()
-        half_year_ago = 180
+        days_range = 60  # зменшено з 180 на 60 днів
 
-        def get_random_aware_datetime(days_back):
-            naive_date = now.date() - timedelta(days=days_back)
-            naive_datetime = datetime.combine(naive_date, time.min)
-            return timezone.make_aware(naive_datetime)
+        def random_date(days_back):
+            date = now - timedelta(days=days_back)
+            return timezone.make_aware(datetime.combine(date.date(), time.min))
 
-        self.stdout.write(
-            f"Starting generation for the last {half_year_ago} days...")
+        self.stdout.write(f"Starting generation for the last {days_range} days...")
 
-        try:
+        for i, user in enumerate(users, 1):
+            budget = user_budgets.get(user.id)
+            if not budget:
+                continue
+
+            self.stdout.write(f"[{i}/{users.count()}] Generating transactions for user {user.username}...")
+
+            transactions_to_create = []
+
+            # Генеруємо incomes (щомісячна зарплата)
+            for month_offset in range(2):  # 2 місяці для тесту, можна 6
+                days_back = month_offset * 30 + random.randint(0, 5)
+                transactions_to_create.append(Transaction(
+                    amount=Decimal(random.randint(20000, 45000)),
+                    transaction_type=Transaction.Types.INCOME,
+                    date=random_date(days_back),
+                    target=budget,
+                    payer=user,
+                    category=random.choice(income_cats),
+                    note="Monthly Salary"
+                ))
+
+            # Генеруємо персональні витрати
+            for _ in range(random.randint(10, 20)):  # зменшено з 40-60
+                transactions_to_create.append(Transaction(
+                    amount=Decimal(random.randint(150, 3000)),
+                    transaction_type=Transaction.Types.EXPENSE,
+                    date=random_date(random.randint(0, days_range)),
+                    target=budget,
+                    payer=user,
+                    category=random.choice(expense_cats),
+                    note="Daily expense"
+                ))
+
+            # Bulk create для користувача
             with transaction.atomic():
+                Transaction.objects.bulk_create(transactions_to_create)
+                budget.recalc()
 
-                self.stdout.write("Generating incomes...")
-                for user in users:
-                    budget = user_budgets.get(user.id)
-                    if not budget:
-                        continue
-                    for month_offset in range(6):
-                        days_back = (month_offset * 30) + random.randint(0, 5)
-                        TransfersService.top_up_budget(
-                            user=user,
-                            amount=Decimal(
-                                random.randint(20000, 45000)
-                            ),
-                            category=random.choice(income_cats),
-                            date=get_random_aware_datetime(days_back),
-                            note="Monthly Salary"
-                        )
+            self.stdout.write(f"  Created {len(transactions_to_create)} transactions for {user.username}")
 
-                self.stdout.write("Generating personal expenses...")
-                for user in users:
-                    budget = user_budgets.get(user.id)
-                    if not budget:
-                        continue
-                    for _ in range(random.randint(40, 60)):
-                        TransfersService.set_expense(
-                            user=user,
-                            amount=Decimal
-                            (random.randint(150, 3000)
-                             ),
-                            category=random.choice(expense_cats),
-                            date=get_random_aware_datetime(
-                                random.randint(0, half_year_ago)
-                            ),
-                            note="Daily expense"
-                        )
-                    budget.recalc()
+        # Генерація внесків до груп
+        self.stdout.write("Generating contributions to groups...")
+        for group in Group.objects.all():
+            target_budget = group.budget
+            if not target_budget:
+                continue
+            memberships = group.memberships.filter(status="Accepted")[:5]
+            for ms in memberships:
+                payer_budget = user_budgets.get(ms.user.id)
+                if not payer_budget:
+                    continue
+                transactions_to_create = []
+                for _ in range(random.randint(3, 5)):
+                    category = random.choice(income_cats + expense_cats)
+                    transactions_to_create.append(Transaction(
+                        amount=Decimal(random.randint(1000, 4000)),
+                        transaction_type=Transaction.Types.EXPENSE,
+                        date=random_date(random.randint(0, days_range)),
+                        target=target_budget,
+                        payer=ms.user,
+                        category=category,
+                        note=f"Membership fee for {group.name}"
+                    ))
+                Transaction.objects.bulk_create(transactions_to_create)
+                target_budget.recalc()
 
-                self.stdout.write("Generating contributions to groups...")
-                for group in Group.objects.all():
-                    target_budget = group_budgets.get(group.id)
-                    if not target_budget:
-                        continue
-                    memberships = group.groupslink.filter(status="Accepted")[
-                        :5]
-                    for ms in memberships:
-                        payer_budget = user_budgets.get(ms.user.id)
-                        if not payer_budget:
-                            continue
-                        for _ in range(random.randint(3, 5)):
-                            TransfersService.transfer_between_budgets(
-                                amount=Decimal(
-                                    random.randint(1000, 4000)
-                                ),
-                                from_budget=payer_budget,
-                                to_budget=target_budget,
-                                payer=ms.user,
-                                date=get_random_aware_datetime(
-                                    random.randint(0, half_year_ago)
-                                ),
-                                note=f"Membership fee for {group.name}"
-                            )
+        #Генерація внесків до подій
+        self.stdout.write("Generating contributions to events...")
+        for event in Event.objects.all():
+            target_budget = event_budgets.get(event.id)
+            if not target_budget:
+                continue
+            memberships = event.memberships.filter(status="Accepted")[:5]
+            for ms in memberships:
+                payer_budget = user_budgets.get(ms.user.id)
+                if not payer_budget:
+                    continue
+                transactions_to_create = []
+                for _ in range(random.randint(3, 5)):
+                    if event.event_type == Event.EventType.ACCUMULATIVE:
+                        category = random.choice(income_cats)
+                        t_type = Transaction.Types.INCOME
+                    elif event.event_type == Event.EventType.EXPENSES:
+                        category = random.choice(expense_cats)
+                        t_type = Transaction.Types.EXPENSE
+                    else:
+                        category = random.choice(income_cats + expense_cats)
+                        t_type = random.choice([Transaction.Types.INCOME, Transaction.Types.EXPENSE])
 
-                self.stdout.write("Generating contributions to events...")
-                for event in Event.objects.all():
-                    target_budget = event_budgets.get(event.id)
-                    if not target_budget:
-                        continue
-                    memberships = event.memberships.filter(status="Accepted")[
-                        :5]
-                    for ms in memberships:
-                        payer_budget = user_budgets.get(ms.user.id)
-                        if not payer_budget:
-                            continue
-                        for _ in range(random.randint(3, 5)):
-                            TransfersService.transfer_between_budgets(
-                                amount=Decimal(
-                                    random.randint(500, 2000)
-                                ),
-                                from_budget=payer_budget,
-                                to_budget=target_budget,
-                                payer=ms.user,
-                                date=get_random_aware_datetime(
-                                    random.randint(0, half_year_ago)
-                                ),
-                                note=f"Support for event: {event.name}"
-                            )
+                    transactions_to_create.append(Transaction(
+                        amount=Decimal(random.randint(500, 2000)),
+                        transaction_type=t_type,
+                        date=random_date(random.randint(0, days_range)),
+                        target=target_budget,
+                        payer=ms.user,
+                        category=category,
+                        note=f"Support for event: {event.name}"
+                    ))
+                Transaction.objects.bulk_create(transactions_to_create)
+                target_budget.recalc()
 
-            self.stdout.write(
-                self.style.SUCCESS("Done! Data generated successfully."))
-        except Exception as e:
-            self.stdout.write(self.style.ERROR(f"Error: {str(e)}"))
+        self.stdout.write(self.style.SUCCESS("Done! All transactions generated successfully."))

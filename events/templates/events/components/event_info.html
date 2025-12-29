@@ -17,42 +17,41 @@
         <p><strong>Planned amount:</strong> {{ event.planned_amount }}
         </p>
       </div>
-      <div class="flex-grow-0"
-           style="position: relative; height:200px; width:200px; margin: auto;">
-        <canvas id="gaugeChart"></canvas>
-        <div
-            style="position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%);">
-          <h3 class="mb-0">{{ analytics.percent }}%</h3>
-          <small class="text-secondary">reached</small>
-        </div>
+      {% if event.event_type == "Accumulative" %}
+        <div class="flex-grow-0"
+             style="position: relative; height:200px; width:200px; margin: auto;">
+          <canvas id="gaugeChart"></canvas>
+          <div
+              style="position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%);">
+            <h3 class="mb-0">{{ analytics.percent }}%</h3>
+            <small class="text-secondary">reached</small>
+          </div>
 
-      </div>
+        </div>
+      {% endif %}
 
     </div>
     <hr>
     <h5 class="fw-semibold mb-3">Budget overview</h5>
-
-    {% if event.type == "Savings" %}
       <p>Total income: {{ current_budget.total_income }}</p>
-    {% endif %}
-    {% if current_budget.total_expenses %}
       <p>Total expenses: {{ current_budget.total_expenses }}</p>
-    {% endif %}
 
-    <p class="mb-1 d-flex justify-content-between">
-      <span class="text-secondary">Progress</span>
-      <span
-          class="fw-bold">{{ current_budget.current_amount }} / {{ current_budget.planned_amount }}</span>
-    </p>
-    <div class="progress bg-secondary" style="height: 10px;">
-      <div class="progress-bar bg-success"
-           role="progressbar"
-           style="width: {{ analytics.percent }}%"
-           aria-valuenow="{{ analytics.percent }}"
-           aria-valuemin="0"
-           aria-valuemax="100">
+    {% if event.event_type == "Accumulative" %}
+      <p class="mb-1 d-flex justify-content-between">
+        <span class="text-secondary">Progress</span>
+        <span
+            class="fw-bold">{{ current_budget.current_amount }} / {{ current_budget.planned_amount }}</span>
+      </p>
+      <div class="progress bg-secondary" style="height: 10px;">
+        <div class="progress-bar bg-success"
+             role="progressbar"
+             style="width: {{ analytics.percent }}%"
+             aria-valuenow="{{ analytics.percent }}"
+             aria-valuemin="0"
+             aria-valuemax="100">
+        </div>
       </div>
-    </div>
+    {% endif %}
   </div>
 
 </div>

@@ -8,7 +8,6 @@
     <div
         class="col-12 col-md-8 col-lg-6 p-4 bg-dark text-white rounded shadow-lg position-relative">
 
-      <!-- Back button -->
       <a href="{% url 'events:event-hero' %}"
          class="position-absolute"
          style="top: 20px; left: 20px;">
@@ -16,7 +15,6 @@
              width="30" height="30" alt="Back">
       </a>
 
-      <!-- Header -->
       <div class="text-center mb-4">
         <img src="{% static 'assets/images/calendar-event-svg_white.svg' %}"
              width="60" height="60" class="mb-3" alt="Create Event">
@@ -33,7 +31,6 @@
           </div>
         {% endif %}
 
-        <!-- General Information -->
         <h5 class="text-secondary mb-3 border-bottom border-secondary pb-2">
           General Information
         </h5>
@@ -72,7 +69,6 @@
           </div>
         </div>
 
-        <!-- Dates -->
         <div class="row">
           <div class="col-md-6">
             <div class="form-floating mb-3 text-secondary">
@@ -95,7 +91,6 @@
           </div>
         </div>
 
-        <!-- Financial Settings -->
         <h5 class="text-secondary mt-4 mb-3 border-bottom border-secondary pb-2">
           Financial Settings
         </h5>
@@ -108,7 +103,6 @@
           </div>
         </div>
 
-        <!-- Accessibility -->
         {% block accessibility %}
           <div class="mb-3">
             <label class="form-label text-secondary small">
@@ -124,13 +118,28 @@
           </div>
         {% endblock %}
 
-        <!-- Participants -->
         {% if form.participants.field.choices %}
+          <h5 class="text-secondary mt-4 mb-3 border-bottom border-secondary pb-2">
+            Participants
+          </h5>
+
           <div class="mb-4">
             <label class="form-label text-secondary small">
-              Invite Participants
+              Add participants
             </label>
-            {{ form.participants }}
+
+            <div class="bg-transparent"
+                 style="max-height: 200px; overflow-y: auto;">
+              {% for checkbox in form.participants %}
+                <div class="form-check mb-2">
+                  {{ checkbox.tag }}
+                  <label class="form-check-label text-white-50">
+                    {{ checkbox.choice_label }}
+                  </label>
+                </div>
+              {% endfor %}
+            </div>
+
             <div class="text-danger small">
               {{ form.participants.errors }}
             </div>

@@ -31,7 +31,7 @@ class GroupEventService:
         membership.save()
 
     @classmethod
-    def create_group_event(cls, group, event) -> Event:
+    def create_group_event(cls, group: Group, event: Event) -> Event:
         GroupEventConnection.objects.create(group=group, event=event)
 
         cls.invite_group_members_to_event(group, event)

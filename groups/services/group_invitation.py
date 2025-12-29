@@ -6,8 +6,11 @@ from groups.models import GroupMembership, Group
 
 class GroupInvitationService:
     @classmethod
-    def create_group_invitation(cls, list_of_connects: list[int],
-                                group_id: int) -> None:
+    def create_group_invitation(
+            cls,
+            list_of_connects: list[int],
+            group_id: int
+    ) -> None:
         existing = set(
             GroupMembership.objects.filter(
                 group_id=group_id, user_id__in=list_of_connects

@@ -36,7 +36,7 @@ class UserConnectionsServiceTest(TestCase):
     def test_get_user_connections_filtered_by_status(self):
         accepted = UserConnectionsService.get_user_connections(
             self.u1.id,
-            status="accepted"
+            status=UserConnection.Status.ACCEPTED
         )
         self.assertEqual(accepted.count(), 1)
         self.assertEqual(accepted.first(), self.conn_accepted)
