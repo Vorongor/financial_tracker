@@ -1,4 +1,7 @@
 ### 🧪 Test Accounts
+Site: https://financial-tracker-akob.onrender.com
+
+
 ![Core structure UML diagram](addition_info/core_structure.svg)
 Use the following credentials to test functionality. All accounts have the same
 password.
